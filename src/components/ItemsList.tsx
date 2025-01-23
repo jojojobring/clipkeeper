@@ -11,6 +11,8 @@ import { useSalesInfo } from "./items/useSalesInfo";
 interface Item {
   code: string;
   qty: string;
+  description?: string;
+  price?: number;
 }
 
 const ItemsList = () => {
@@ -28,6 +30,16 @@ const ItemsList = () => {
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
     newItems[index].qty = value;
+    setLocalItems(newItems);
+  };
+
+  const handleItemDetailsLoaded = (index: number, details: { description?: string; price?: number }) => {
+    const newItems = [...localItems];
+    newItems[index] = {
+      ...newItems[index],
+      description: details.description,
+      price: details.price
+    };
     setLocalItems(newItems);
   };
 
@@ -71,7 +83,12 @@ const ItemsList = () => {
         name,
         serviceWriter,
         vehicleInfo,
-        items: localItems,
+        items: localItems.map(item => ({
+          code: item.code,
+          qty: item.qty,
+          description: item.description,
+          price: item.price
+        })),
         timestamp: new Date().toISOString(),
       };
 
@@ -119,6 +136,7 @@ const ItemsList = () => {
         items={localItems}
         isReadOnly={isReadOnly}
         onQuantityChange={handleQuantityChange}
+        onItemDetailsLoaded={handleItemDetailsLoaded}
       />
 
       <ActionButtons
