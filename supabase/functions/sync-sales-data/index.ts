@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // SharePoint authentication details
     const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
-    const tenantId = 'carecollisionllc.sharepoint.com'
+    const tenantId = 'carecollisionllc.onmicrosoft.com'
 
     console.log('Starting SharePoint authentication...');
     console.log('Client ID available:', !!clientId);
@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
     console.log('Successfully obtained access token');
 
     // Use Microsoft Graph API to get the file
-    const graphApiUrl = 'https://graph.microsoft.com/v1.0/sites/carecollisionllc.sharepoint.com:/sites/CareCollisionLLC:/drive/root:/Shared%20Documents/sales-forecast.xml:/content'
+    const siteId = 'carecollisionllc.sharepoint.com'
+    const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}:/sites/CareCollisionLLC:/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
     const fileResponse = await fetch(graphApiUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -98,7 +99,7 @@ Deno.serve(async (req) => {
     if (!fileResponse.ok) {
       console.error('File response status:', fileResponse.status);
       console.error('File response status text:', fileResponse.statusText);
-      throw new Error(`Failed to fetch XML file: ${fileResponse.statusText}`)
+      throw new Error(`Failed to fetch XML file: ${fileResponse.statusText}`);
     }
 
     const xmlContent = await fileResponse.text()
