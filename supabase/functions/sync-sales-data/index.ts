@@ -42,8 +42,9 @@ serve(async (req) => {
 
     // Get the file using the specific Site ID
     const siteId = '49b73754-9981-45de-9b97-b3a35ddb8215';
-    const filePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml';
-    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:${filePath}:/content`;
+    const rawFilePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml';
+    const encodedFilePath = encodeURIComponent(rawFilePath);
+    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:${encodedFilePath}:/content`;
     
     console.log('Requesting file from:', fileUrl);
 
