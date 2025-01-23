@@ -21,6 +21,7 @@ const ItemsList = () => {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [newItemCode, setNewItemCode] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -53,7 +54,7 @@ const ItemsList = () => {
     setNewItemCode("");
   };
 
-  const handleDone = async () => {
+  const handleDone = () => {
     // Validate all quantities
     const isValid = localItems.every((item) => {
       const qty = parseInt(item.qty);
@@ -66,8 +67,7 @@ const ItemsList = () => {
     }
 
     setIsReadOnly(true);
-    // Automatically send data after validation
-    await handleConfirm();
+    setShowConfirm(true);
   };
 
   const handleConfirm = async () => {
@@ -95,9 +95,16 @@ const ItemsList = () => {
     } catch (error) {
       console.error("Error sending data:", error);
       toast.error("Failed to send data to Power Automate. Please try again.");
+      setIsReadOnly(false);
+      setShowConfirm(false);
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleEdit = () => {
+    setIsReadOnly(false);
+    setShowConfirm(false);
   };
 
   return (
@@ -152,27 +159,44 @@ const ItemsList = () => {
         </table>
       </div>
 
-      {!isReadOnly && (
-        <div className="mt-6 space-y-4">
-          <Button onClick={handleAddItem} className="w-full">
-            {cameraPermissionDenied ? (
-              <>
-                <Camera className="mr-2 h-4 w-4" />
-                Try Camera Scan
-              </>
-            ) : (
-              "Add item"
-            )}
-          </Button>
-          <Button 
-            onClick={handleDone} 
-            className="w-full"
-            disabled={isSending}
-          >
-            {isSending ? "Sending..." : "Done"}
-          </Button>
-        </div>
-      )}
+      <div className="mt-6 space-y-4">
+        {!isReadOnly && (
+          <>
+            <Button onClick={handleAddItem} className="w-full">
+              {cameraPermissionDenied ? (
+                <>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Try Camera Scan
+                </>
+              ) : (
+                "Add item"
+              )}
+            </Button>
+            <Button onClick={handleDone} className="w-full">
+              Done
+            </Button>
+          </>
+        )}
+
+        {showConfirm && (
+          <div className="space-y-4">
+            <Button 
+              onClick={handleConfirm} 
+              className="w-full"
+              disabled={isSending}
+            >
+              {isSending ? "Sending..." : "Confirm"}
+            </Button>
+            <Button 
+              onClick={handleEdit} 
+              variant="outline"
+              className="w-full"
+            >
+              Edit
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
