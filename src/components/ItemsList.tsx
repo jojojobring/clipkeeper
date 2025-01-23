@@ -17,6 +17,8 @@ const ItemsList = () => {
   const [localItems, setLocalItems] = useState<Item[]>(items);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [newItemCode, setNewItemCode] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -64,9 +66,39 @@ const ItemsList = () => {
     setIsReadOnly(true);
   };
 
-  const handleConfirm = () => {
-    toast.success("Invoice successfully created");
-    navigate("/success");
+  const handleConfirm = async () => {
+    if (!webhookUrl) {
+      toast.error("Please enter your Power Automate webhook URL");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const payload = {
+        roNumber,
+        name,
+        items: localItems,
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors", // Handle CORS restrictions
+        body: JSON.stringify(payload),
+      });
+
+      toast.success("Invoice successfully created and sent to Power Automate");
+      navigate("/success");
+    } catch (error) {
+      console.error("Error sending data:", error);
+      toast.error("Failed to send data to Power Automate. Please check the webhook URL and try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -140,9 +172,22 @@ const ItemsList = () => {
       )}
 
       {isReadOnly && (
-        <Button onClick={handleConfirm} className="w-full mt-6">
-          Confirm
-        </Button>
+        <div className="mt-6 space-y-4">
+          <Input
+            type="url"
+            placeholder="Enter your Power Automate webhook URL"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            className="w-full"
+          />
+          <Button 
+            onClick={handleConfirm} 
+            className="w-full"
+            disabled={isSending}
+          >
+            {isSending ? "Sending..." : "Confirm"}
+          </Button>
+        </div>
       )}
     </div>
   );
