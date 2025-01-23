@@ -23,18 +23,19 @@ Deno.serve(async (req) => {
     const appId = Deno.env.get('SHAREPOINT_APP_ID')!
     const tenantId = 'carecollisionllc.onmicrosoft.com'
     const realm = tenantId
+    const principal = `${clientId}@${realm}`
 
     console.log('Starting SharePoint authentication...')
     console.log('Using realm:', realm)
-    console.log('Using principal:', `${appId}@${realm}`)
+    console.log('Using principal:', principal)
 
     // Get an access token using SharePoint's app-only authentication
     const tokenUrl = `https://accounts.accesscontrol.windows.net/${realm}/tokens/OAuth/2`
-    const resource = `00000003-0000-0ff1-ce00-000000000000/carecollisionllc.sharepoint.com@${realm}`
+    const resource = `00000003-0000-0ff1-ce00-000000000000/${tenantId}`
     
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: `${appId}@${realm}`,
+      client_id: principal,
       client_secret: clientSecret,
       resource: resource
     })
@@ -174,6 +175,7 @@ Deno.serve(async (req) => {
         status: 200,
       }
     )
+
   } catch (error) {
     console.error('Error:', error)
     return new Response(
