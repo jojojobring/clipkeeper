@@ -20,26 +20,19 @@ const BarcodeScanner = () => {
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
 
   const handleCapture = async (decodedText: string) => {
-    if (scanner) {
-      try {
-        await scanner.stop();
-        const currentItems = location.state?.items || [];
-        const newItem = { code: decodedText, qty: "" };
-        
-        toast.success("Barcode captured successfully!");
-        
-        navigate("/items", {
-          state: {
-            ...location.state,
-            items: [...currentItems, newItem],
-            cameraPermissionDenied: false
-          },
-        });
-      } catch (err) {
-        console.error("Error stopping scanner:", err);
-        toast.error("Error processing scan. Please try again.");
-      }
-    }
+    console.log("Handling capture for:", decodedText);
+    const currentItems = location.state?.items || [];
+    const newItem = { code: decodedText, qty: "" };
+    
+    toast.success("Barcode captured successfully!");
+    
+    navigate("/items", {
+      state: {
+        ...location.state,
+        items: [...currentItems, newItem],
+        cameraPermissionDenied: false
+      },
+    });
   };
 
   const onScanSuccess = (decodedText: string) => {
@@ -48,7 +41,6 @@ const BarcodeScanner = () => {
   };
 
   const onScanFailure = (error: any) => {
-    // Only log scan failures for debugging
     console.debug("Scan failure:", error);
   };
 
@@ -65,12 +57,7 @@ const BarcodeScanner = () => {
       const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
       setScanner(html5QrCode);
 
-      const config = {
-        ...getScannerConfig(),
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-      };
+      const config = getScannerConfig();
 
       await html5QrCode.start(
         { facingMode: "environment" },

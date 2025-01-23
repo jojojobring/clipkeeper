@@ -18,7 +18,10 @@ export const getScannerConfig = () => ({
   fps: 10,
   qrbox: { width: 250, height: 250 },
   aspectRatio: 1.0,
-  formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ]
+  formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ],
+  experimentalFeatures: {
+    useBarCodeDetectorIfSupported: true
+  }
 });
 
 export const cleanupScanner = (scanner: any) => {
