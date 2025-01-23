@@ -28,15 +28,8 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
       throw new Error('Invalid XML structure: missing reportResponse element. Available root elements: ' + Object.keys(result).join(', '));
     }
 
-    // Try to find the report element inside reportResponse
-    let reportElement = result.reportResponse.report;
-    if (!reportElement) {
-      console.error('Could not find report element inside reportResponse. Available keys:', Object.keys(result.reportResponse));
-      throw new Error('Invalid XML structure: missing report element inside reportResponse. Available elements: ' + Object.keys(result.reportResponse).join(', '));
-    }
-
-    // Extract header information with better error handling
-    const header = reportElement.header || {};
+    // Extract header information directly from reportResponse
+    const header = result.reportResponse.header || {};
     console.log('Extracted header:', JSON.stringify(header, null, 2));
     
     const headerData: HeaderData = {
@@ -52,10 +45,13 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
       vehicle_done_type: header.vehicleDoneTypeReportViewParameter?.vehicleDoneType || '',
     };
 
-    // Process sales data with better error handling
+    // Process sales data from the data section
     let salesData: SaleData[] = [];
-    if (reportElement.sale) {
-      const salesArray = Array.isArray(reportElement.sale) ? reportElement.sale : [reportElement.sale];
+    if (result.reportResponse.data?.sale) {
+      const salesArray = Array.isArray(result.reportResponse.data.sale) 
+        ? result.reportResponse.data.sale 
+        : [result.reportResponse.data.sale];
+      
       console.log('Number of sales records found:', salesArray.length);
       
       salesData = salesArray.map((sale: any, index: number) => {
