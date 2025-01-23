@@ -39,6 +39,7 @@ serve(async (req) => {
 
     // Get SharePoint access token
     const accessToken = await getSharePointAccessToken(clientId, clientSecret, tenantId);
+    console.log('Successfully obtained SharePoint access token');
 
     // Get the file using the specific Site ID and Drive ID
     const siteId = '49b73754-9981-45de-9b97-b3a35ddb8215';
@@ -93,10 +94,13 @@ serve(async (req) => {
     }
 
     const fileContent = await fileResponse.text();
-    console.log('Successfully retrieved file content');
+    console.log('Successfully retrieved file content. Content length:', fileContent.length);
+    console.log('First 100 characters of file:', fileContent.substring(0, 100));
 
     // Parse XML content and extract data
     const { headerData, salesData } = parseXMLContent(fileContent);
+    console.log('Successfully parsed XML content');
+    console.log('Number of sales records:', salesData.length);
 
     // Insert data into database
     await insertData(supabase, headerData, salesData);

@@ -3,6 +3,7 @@ import { HeaderData, SaleData } from './types.ts';
 
 export function parseXMLContent(fileContent: string): { headerData: HeaderData; salesData: SaleData[] } {
   console.log('Attempting to parse XML content');
+  console.log('Raw XML content:', fileContent.substring(0, 500) + '...'); // Log first 500 chars
   
   const parser = new XMLParser({
     ignoreAttributes: false,
@@ -11,14 +12,17 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
   });
 
   const result = parser.parse(fileContent);
-  console.log('XML parsing successful');
+  console.log('Parsed XML result:', JSON.stringify(result, null, 2));
 
   if (!result || !result.report) {
+    console.error('Invalid XML structure. Full parsed result:', JSON.stringify(result));
     throw new Error('Invalid XML structure: missing report element');
   }
 
   // Extract header information
   const header = result.report.header || {};
+  console.log('Extracted header:', JSON.stringify(header, null, 2));
+  
   const headerData: HeaderData = {
     company_name: header.companyName || '',
     report_name: header.reportName || '',
@@ -34,6 +38,8 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
 
   // Process sales data
   const salesArray = Array.isArray(result.report.sale) ? result.report.sale : [result.report.sale];
+  console.log('Number of sales records found:', salesArray.length);
+  
   const salesData: SaleData[] = salesArray.map((sale: any) => ({
     report_header_id: 0,
     row_index: parseInt(sale.row_index || '0'),
