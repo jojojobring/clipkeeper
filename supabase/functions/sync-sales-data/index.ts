@@ -55,31 +55,38 @@ Deno.serve(async (req) => {
     // SharePoint authentication details
     const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
-    const tenantId = 'carecollisionllc.onmicrosoft.com'
+    const tenantId = 'carecollisionllc'
 
     console.log('Starting SharePoint authentication...');
     console.log('Client ID available:', !!clientId);
     console.log('Client Secret available:', !!clientSecret);
 
     // First, get an access token
-    const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
+    const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/v2.0/token`
+    const tokenBody = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+      scope: 'https://graph.microsoft.com/.default'
+    })
+
+    console.log('Token URL:', tokenUrl);
+    console.log('Request scope:', tokenBody.get('scope'));
+
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope: 'https://graph.microsoft.com/.default',
-      }),
+      body: tokenBody,
     })
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('Token response error:', errorData);
-      throw new Error(`Failed to get access token: ${tokenResponse.statusText}`);
+      const errorText = await tokenResponse.text();
+      console.error('Token response error:', errorText);
+      console.error('Token response status:', tokenResponse.status);
+      console.error('Token response headers:', Object.fromEntries(tokenResponse.headers));
+      throw new Error(`Failed to get access token: ${tokenResponse.statusText} (${tokenResponse.status})`);
     }
 
     const tokenData = await tokenResponse.json()
@@ -90,6 +97,9 @@ Deno.serve(async (req) => {
     // Use Microsoft Graph API to get the file
     const siteId = 'carecollisionllc.sharepoint.com'
     const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}:/sites/CareCollisionLLC:/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
+    
+    console.log('Attempting to fetch file from:', graphApiUrl);
+    
     const fileResponse = await fetch(graphApiUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -99,9 +109,12 @@ Deno.serve(async (req) => {
     if (!fileResponse.ok) {
       console.error('File response status:', fileResponse.status);
       console.error('File response status text:', fileResponse.statusText);
-      throw new Error(`Failed to fetch XML file: ${fileResponse.statusText}`);
+      const errorBody = await fileResponse.text();
+      console.error('File response error body:', errorBody);
+      throw new Error(`Failed to fetch XML file: ${fileResponse.statusText} (${fileResponse.status})`);
     }
 
+    // Extract header information
     const xmlContent = await fileResponse.text()
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(xmlContent, 'text/xml')
