@@ -27,7 +27,7 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
       )}
       
       <div className="relative flex-1">
-        <div id="interactive" className="viewport absolute inset-0" />
+        <div id="reader" className="absolute inset-0" />
       </div>
 
       <div className="h-20 bg-black flex items-center justify-center">
@@ -42,27 +42,65 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
 
       <style>
         {`
-          .viewport {
-            position: relative;
-            width: 100%;
-            height: 100%;
+          #reader {
+            width: 100% !important;
+            height: 100% !important;
           }
-          .viewport > video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+          #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
           }
-          .drawingBuffer {
+          #reader__scan_region {
+            position: absolute !important;
+            inset: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
+          }
+          #reader__scan_region > div {
+            position: relative !important;
+            width: 200px !important;
+            height: 200px !important;
+          }
+          #reader__scan_region > div::before,
+          #reader__scan_region > div::after,
+          #reader__scan_region > div > div:first-child::before,
+          #reader__scan_region > div > div:first-child::after {
+            content: '';
             position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #22c55e;
+            border-style: solid;
+          }
+          #reader__scan_region > div::before {
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            border-width: 2px 0 0 2px;
           }
-          #interactive.viewport > canvas.drawingBuffer {
-            width: 100%;
-            height: 100%;
+          #reader__scan_region > div::after {
+            top: 0;
+            right: 0;
+            border-width: 2px 2px 0 0;
+          }
+          #reader__scan_region > div > div:first-child::before {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 2px 2px;
+          }
+          #reader__scan_region > div > div:first-child::after {
+            bottom: 0;
+            right: 0;
+            border-width: 0 2px 2px 0;
+          }
+          #reader__dashboard_section_swaplink,
+          #reader__dashboard_section_csr,
+          #reader__dashboard_section_csr button,
+          #reader__camera_selection,
+          #reader__status_span {
+            display: none !important;
           }
         `}
       </style>
