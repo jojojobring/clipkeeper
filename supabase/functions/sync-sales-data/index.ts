@@ -18,11 +18,17 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // SharePoint authentication details
-    const clientId = Deno.env.get('SHAREPOINT_APP_ID')!
-    const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
+    const clientId = Deno.env.get('SHAREPOINT_APP_ID')
+    const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')
     const tenantId = 'carecollisionllc.onmicrosoft.com'
     
     console.log('Starting SharePoint authentication')
+    console.log('Client ID available:', !!clientId)
+    console.log('Client Secret available:', !!clientSecret)
+
+    if (!clientId || !clientSecret) {
+      throw new Error('Missing SharePoint credentials')
+    }
 
     // Get an access token using modern OAuth endpoint
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
@@ -34,6 +40,8 @@ Deno.serve(async (req) => {
       client_secret: clientSecret,
       scope: scope
     })
+
+    console.log('Requesting access token from:', tokenUrl)
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -57,11 +65,10 @@ Deno.serve(async (req) => {
     console.log('Successfully obtained access token')
 
     // Get the site details using the correct site path
-    const siteDomain = 'carecollisionllc.sharepoint.com'
     const sitePath = '/sites/CareCollisionLLC'
-    const siteUrl = `https://graph.microsoft.com/v1.0/sites/${siteDomain}:${sitePath}`
+    const siteUrl = `https://graph.microsoft.com/v1.0/sites/carecollisionllc.sharepoint.com:${sitePath}`
 
-    console.log('Attempting to get site details:', siteUrl)
+    console.log('Requesting site details from:', siteUrl)
 
     const siteResponse = await fetch(siteUrl, {
       headers: {
@@ -91,7 +98,7 @@ Deno.serve(async (req) => {
     const encodedPath = encodeURIComponent(filePath)
     const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodedPath}:/content`
     
-    console.log('Attempting to get file:', fileUrl)
+    console.log('Requesting file from:', fileUrl)
 
     const fileResponse = await fetch(fileUrl, {
       headers: {
@@ -147,6 +154,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (headerError) {
+      console.error('Error inserting header:', headerError)
       throw headerError
     }
 
@@ -194,6 +202,7 @@ Deno.serve(async (req) => {
       .insert(salesData)
 
     if (salesError) {
+      console.error('Error inserting sales:', salesError)
       throw salesError
     }
 
@@ -206,9 +215,23 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Detailed error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause
+    })
+    
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        details: {
+          name: error.name,
+          stack: error.stack,
+          cause: error.cause
+        }
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
