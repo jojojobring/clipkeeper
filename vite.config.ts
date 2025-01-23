@@ -8,7 +8,6 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: '/invoice-inator/',
   plugins: [
     react(),
     mode === 'development' &&
