@@ -1,28 +1,38 @@
-const SCANNER_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8";
+import Quagga from 'quagga';
 
-export const loadScannerScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = SCANNER_SCRIPT_URL;
-    script.crossOrigin = "anonymous";
-    script.async = true;
-    
-    script.onload = () => resolve();
-    script.onerror = (error) => reject(error);
-    
-    document.body.appendChild(script);
+export const initializeScanner = (onDetected: (result: string) => void) => {
+  Quagga.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: "#interactive",
+      constraints: {
+        facingMode: "environment"
+      },
+    },
+    decoder: {
+      readers: [
+        "ean_reader",
+        "ean_8_reader",
+        "code_128_reader"
+      ]
+    }
+  }, (err) => {
+    if (err) {
+      console.error("Quagga initialization failed:", err);
+      return;
+    }
+    console.log("Quagga initialization succeeded");
+    Quagga.start();
+  });
+
+  Quagga.onDetected((result) => {
+    if (result.codeResult.code) {
+      onDetected(result.codeResult.code);
+    }
   });
 };
 
-export const getScannerConfig = () => ({
-  fps: 10,
-  qrbox: { width: 250, height: 250 },
-  aspectRatio: 1.0,
-  formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ]
-});
-
-export const cleanupScanner = (scanner: any) => {
-  if (scanner) {
-    scanner.stop().catch((err: any) => console.error("Error stopping scanner:", err));
-  }
+export const cleanupScanner = () => {
+  Quagga.stop();
 };
