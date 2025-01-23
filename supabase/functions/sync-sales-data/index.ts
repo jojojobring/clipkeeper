@@ -25,21 +25,21 @@ Deno.serve(async (req) => {
     console.log('Starting SharePoint authentication...')
 
     // Get an access token using SharePoint's app-only authentication
-    const tokenUrl = 'https://accounts.accesscontrol.windows.net/carecollisionllc.onmicrosoft.com/tokens/OAuth/2'
-    const resource = 'https://carecollisionllc.sharepoint.com'
+    const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
+    const scope = 'https://carecollisionllc.sharepoint.com/.default'
     
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      resource: resource
+      scope: scope
     })
 
     console.log('Token URL:', tokenUrl)
     console.log('Token request parameters:', {
       grant_type: 'client_credentials',
       client_id: '[REDACTED]',
-      resource: resource
+      scope: scope
     })
 
     const tokenResponse = await fetch(tokenUrl, {
