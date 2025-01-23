@@ -9,7 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      report_headers: {
+        Row: {
+          carrier_name: string | null
+          company_name: string | null
+          created_at: string | null
+          created_datetime: string | null
+          date_range_type: string | null
+          end_date: string | null
+          id: number
+          locations: string | null
+          report_name: string | null
+          start_date: string | null
+          total_loss_flag: boolean | null
+          vehicle_done_type: string | null
+        }
+        Insert: {
+          carrier_name?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          created_datetime?: string | null
+          date_range_type?: string | null
+          end_date?: string | null
+          id?: number
+          locations?: string | null
+          report_name?: string | null
+          start_date?: string | null
+          total_loss_flag?: boolean | null
+          vehicle_done_type?: string | null
+        }
+        Update: {
+          carrier_name?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          created_datetime?: string | null
+          date_range_type?: string | null
+          end_date?: string | null
+          id?: number
+          locations?: string | null
+          report_name?: string | null
+          start_date?: string | null
+          total_loss_flag?: boolean | null
+          vehicle_done_type?: string | null
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          adjustment_amount: number | null
+          carrier_name: string | null
+          created_at: string | null
+          customer_custom_field_name_1: string | null
+          customer_custom_field_name_2: string | null
+          franchise_id: string | null
+          id: number
+          insurance_agent_name: string | null
+          is_total_loss: boolean | null
+          labor_amount: number | null
+          master_carrier_name: string | null
+          material_amount: number | null
+          other_amount: number | null
+          owner_name: string | null
+          owner_postal_code: string | null
+          part_amount: number | null
+          posted_date: string | null
+          primary_poi: string | null
+          primary_referral_name: string | null
+          primary_referral_note: string | null
+          repair_completed_datetime: string | null
+          repair_facility_name: string | null
+          repair_facility_number: string | null
+          repair_order_number: string | null
+          repair_plan_name: string | null
+          report_header_id: number | null
+          row_index: number | null
+          service_writer_display_name: string | null
+          subtotal_amount: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          vehicle_make_name: string | null
+          vehicle_out_datetime: string | null
+          vehicle_year_make_model: string | null
+          workfile_id: string | null
+        }
+        Insert: {
+          adjustment_amount?: number | null
+          carrier_name?: string | null
+          created_at?: string | null
+          customer_custom_field_name_1?: string | null
+          customer_custom_field_name_2?: string | null
+          franchise_id?: string | null
+          id?: number
+          insurance_agent_name?: string | null
+          is_total_loss?: boolean | null
+          labor_amount?: number | null
+          master_carrier_name?: string | null
+          material_amount?: number | null
+          other_amount?: number | null
+          owner_name?: string | null
+          owner_postal_code?: string | null
+          part_amount?: number | null
+          posted_date?: string | null
+          primary_poi?: string | null
+          primary_referral_name?: string | null
+          primary_referral_note?: string | null
+          repair_completed_datetime?: string | null
+          repair_facility_name?: string | null
+          repair_facility_number?: string | null
+          repair_order_number?: string | null
+          repair_plan_name?: string | null
+          report_header_id?: number | null
+          row_index?: number | null
+          service_writer_display_name?: string | null
+          subtotal_amount?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          vehicle_make_name?: string | null
+          vehicle_out_datetime?: string | null
+          vehicle_year_make_model?: string | null
+          workfile_id?: string | null
+        }
+        Update: {
+          adjustment_amount?: number | null
+          carrier_name?: string | null
+          created_at?: string | null
+          customer_custom_field_name_1?: string | null
+          customer_custom_field_name_2?: string | null
+          franchise_id?: string | null
+          id?: number
+          insurance_agent_name?: string | null
+          is_total_loss?: boolean | null
+          labor_amount?: number | null
+          master_carrier_name?: string | null
+          material_amount?: number | null
+          other_amount?: number | null
+          owner_name?: string | null
+          owner_postal_code?: string | null
+          part_amount?: number | null
+          posted_date?: string | null
+          primary_poi?: string | null
+          primary_referral_name?: string | null
+          primary_referral_note?: string | null
+          repair_completed_datetime?: string | null
+          repair_facility_name?: string | null
+          repair_facility_number?: string | null
+          repair_order_number?: string | null
+          repair_plan_name?: string | null
+          report_header_id?: number | null
+          row_index?: number | null
+          service_writer_display_name?: string | null
+          subtotal_amount?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          vehicle_make_name?: string | null
+          vehicle_out_datetime?: string | null
+          vehicle_year_make_model?: string | null
+          workfile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_report_header_id_fkey"
+            columns: ["report_header_id"]
+            isOneToOne: false
+            referencedRelation: "report_headers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
