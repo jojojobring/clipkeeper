@@ -22,18 +22,17 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
     const result = parser.parse(fileContent);
     console.log('Parsed XML structure:', JSON.stringify(result, null, 2));
 
-    // Try to find the report element at different levels
-    let reportElement = result.report;
-    if (!reportElement && result.root && result.root.report) {
-      reportElement = result.root.report;
-    }
-    if (!reportElement && result.data && result.data.report) {
-      reportElement = result.data.report;
+    // First check if we have a reportResponse element
+    if (!result.reportResponse) {
+      console.error('Could not find reportResponse element. Available keys:', Object.keys(result));
+      throw new Error('Invalid XML structure: missing reportResponse element. Available root elements: ' + Object.keys(result).join(', '));
     }
 
+    // Try to find the report element inside reportResponse
+    let reportElement = result.reportResponse.report;
     if (!reportElement) {
-      console.error('Could not find report element. Available keys:', Object.keys(result));
-      throw new Error('Invalid XML structure: missing report element. Available root elements: ' + Object.keys(result).join(', '));
+      console.error('Could not find report element inside reportResponse. Available keys:', Object.keys(result.reportResponse));
+      throw new Error('Invalid XML structure: missing report element inside reportResponse. Available elements: ' + Object.keys(result.reportResponse).join(', '));
     }
 
     // Extract header information with better error handling
