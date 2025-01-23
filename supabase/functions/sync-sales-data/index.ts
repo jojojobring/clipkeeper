@@ -66,9 +66,10 @@ Deno.serve(async (req) => {
 
     console.log('Successfully obtained access token')
 
-    // First, get the site ID
+    // Get the site using hostname and relative path
     const siteDomain = 'carecollisionllc.sharepoint.com'
-    const siteResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteDomain}:/sites/General`, {
+    const relativePath = '/sites/General'
+    const siteResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteDomain}:${relativePath}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
