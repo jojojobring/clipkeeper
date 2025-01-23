@@ -33,6 +33,39 @@ export type Database = {
         }
         Relationships: []
       }
+      order_requests: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: number
+          items: Json
+          ro_number: string
+          service_writer: string | null
+          timestamp: string
+          vehicle_info: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          id?: never
+          items: Json
+          ro_number: string
+          service_writer?: string | null
+          timestamp?: string
+          vehicle_info?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: never
+          items?: Json
+          ro_number?: string
+          service_writer?: string | null
+          timestamp?: string
+          vehicle_info?: string | null
+        }
+        Relationships: []
+      }
       report_headers: {
         Row: {
           carrier_name: string | null
