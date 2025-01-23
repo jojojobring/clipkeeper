@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // SharePoint authentication details
-    const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
+    const clientId = Deno.env.get('SHAREPOINT_APP_ID')!
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
     const tenantId = 'carecollisionllc.onmicrosoft.com'
     
