@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { X } from "lucide-react";
+import { X, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { requestCameraPermission } from "@/utils/cameraUtils";
 import { loadScannerScript, getScannerConfig, cleanupScanner } from "@/utils/scannerUtils";
@@ -17,6 +17,7 @@ const BarcodeScanner = () => {
   const location = useLocation();
   const [scanner, setScanner] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -26,7 +27,7 @@ const BarcodeScanner = () => {
         // Check camera permissions
         const hasPermission = await requestCameraPermission();
         if (!hasPermission) {
-          toast.error("Please allow camera access to scan barcodes");
+          setCameraPermissionDenied(true);
           setIsInitializing(false);
           return;
         }
@@ -50,7 +51,7 @@ const BarcodeScanner = () => {
       } catch (error) {
         console.error("Scanner initialization error:", error);
         if (mounted) {
-          toast.error("Failed to start camera. Please try again.");
+          setCameraPermissionDenied(true);
           setIsInitializing(false);
         }
       }
@@ -77,6 +78,7 @@ const BarcodeScanner = () => {
           state: {
             ...location.state,
             items: [...currentItems, newItem],
+            cameraPermissionDenied: false
           },
         });
       } catch (err) {
@@ -93,8 +95,41 @@ const BarcodeScanner = () => {
 
   const handleClose = () => {
     cleanupScanner(scanner);
-    navigate(-1);
+    navigate("/items", {
+      state: {
+        ...location.state,
+        cameraPermissionDenied: true
+      }
+    });
   };
+
+  const retryCamera = async () => {
+    setIsInitializing(true);
+    setCameraPermissionDenied(false);
+    await initializeCamera();
+  };
+
+  if (cameraPermissionDenied) {
+    return (
+      <div className="min-h-screen bg-white p-4 flex flex-col items-center justify-center">
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-semibold mb-2">Camera Access Required</h2>
+          <p className="text-gray-600">
+            Please enable camera access to scan barcodes. You can proceed without camera access and enter codes manually.
+          </p>
+        </div>
+        <div className="space-y-4 w-full max-w-md">
+          <Button onClick={retryCamera} className="w-full">
+            <Camera className="mr-2 h-4 w-4" />
+            Try Camera Again
+          </Button>
+          <Button onClick={handleClose} variant="outline" className="w-full">
+            Continue Without Camera
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black relative">

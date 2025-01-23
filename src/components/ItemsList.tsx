@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Camera } from "lucide-react";
 import { toast } from "sonner";
 
 interface Item {
@@ -12,9 +13,10 @@ interface Item {
 const ItemsList = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { roNumber, name, items = [] } = location.state || {};
+  const { roNumber, name, items = [], cameraPermissionDenied = false } = location.state || {};
   const [localItems, setLocalItems] = useState<Item[]>(items);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [newItemCode, setNewItemCode] = useState("");
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -26,6 +28,16 @@ const ItemsList = () => {
     navigate("/scan", {
       state: { roNumber, name, items: localItems },
     });
+  };
+
+  const handleManualAdd = () => {
+    if (!newItemCode.trim()) {
+      toast.error("Please enter an item code");
+      return;
+    }
+    
+    setLocalItems([...localItems, { code: newItemCode, qty: "" }]);
+    setNewItemCode("");
   };
 
   const handleDone = () => {
@@ -54,6 +66,20 @@ const ItemsList = () => {
         <h2 className="text-lg font-semibold">RO Number: {roNumber}</h2>
         <p className="text-sm text-gray-600">Name: {name}</p>
       </div>
+
+      {cameraPermissionDenied && !isReadOnly && (
+        <div className="mb-6 space-y-2">
+          <Input
+            type="text"
+            placeholder="Enter item code manually"
+            value={newItemCode}
+            onChange={(e) => setNewItemCode(e.target.value)}
+          />
+          <Button onClick={handleManualAdd} className="w-full">
+            Add Manual Entry
+          </Button>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -89,7 +115,14 @@ const ItemsList = () => {
       {!isReadOnly && (
         <div className="mt-6 space-y-4">
           <Button onClick={handleAddItem} className="w-full">
-            Add item
+            {cameraPermissionDenied ? (
+              <>
+                <Camera className="mr-2 h-4 w-4" />
+                Try Camera Scan
+              </>
+            ) : (
+              "Add item"
+            )}
           </Button>
           <Button onClick={handleDone} className="w-full">
             Done
