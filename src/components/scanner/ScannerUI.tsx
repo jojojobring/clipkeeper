@@ -26,7 +26,7 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         </div>
       )}
       
-      <div id="reader" className="absolute inset-0 top-0 bottom-20" />
+      <div id="reader" className="flex-1 relative" />
 
       <style>
         {`
@@ -46,43 +46,56 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
             background: transparent !important;
             position: absolute !important;
             inset: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
-          #reader__scan_region::before,
-          #reader__scan_region::after,
+          #reader__scan_region::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+          }
+          #reader__scan_region > div {
+            position: relative;
+            width: 200px;
+            height: 200px;
+          }
           #reader__scan_region > div::before,
-          #reader__scan_region > div::after {
+          #reader__scan_region > div::after,
+          #reader__scan_region > div > div:first-child::before,
+          #reader__scan_region > div > div:first-child::after {
             content: '';
             position: absolute;
             width: 20px;
             height: 20px;
-            border-color: white;
+            border-color: #22c55e;
             border-style: solid;
-            border-width: 2px;
-            z-index: 20;
           }
-          #reader__scan_region::before {
-            top: calc(50% - 100px);
-            left: calc(50% - 100px);
-            border-right: 0;
-            border-bottom: 0;
-          }
-          #reader__scan_region::after {
-            top: calc(50% - 100px);
-            right: calc(50% - 100px);
-            border-left: 0;
-            border-bottom: 0;
-          }
+          /* Top left corner */
           #reader__scan_region > div::before {
-            bottom: calc(50% - 100px);
-            left: calc(50% - 100px);
-            border-right: 0;
-            border-top: 0;
+            top: 0;
+            left: 0;
+            border-width: 2px 0 0 2px;
           }
+          /* Top right corner */
           #reader__scan_region > div::after {
-            bottom: calc(50% - 100px);
-            right: calc(50% - 100px);
-            border-left: 0;
-            border-top: 0;
+            top: 0;
+            right: 0;
+            border-width: 2px 2px 0 0;
+          }
+          /* Bottom left corner */
+          #reader__scan_region > div > div:first-child::before {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 2px 2px;
+          }
+          /* Bottom right corner */
+          #reader__scan_region > div > div:first-child::after {
+            bottom: 0;
+            right: 0;
+            border-width: 0 2px 2px 0;
           }
           #reader__dashboard_section_swaplink {
             display: none !important;
@@ -96,10 +109,13 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
           #reader__camera_selection {
             display: none !important;
           }
+          #reader__status_span {
+            display: none !important;
+          }
         `}
       </style>
 
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-sm flex items-center justify-center pb-safe z-50">
+      <div className="fixed bottom-0 left-0 right-0 h-24 bg-black/80 backdrop-blur-sm flex items-center justify-center pb-8 z-50">
         <Button
           onClick={onCapture}
           className="rounded-full w-16 h-16 p-0 bg-white text-black hover:bg-white/90"
