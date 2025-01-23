@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -64,13 +64,12 @@ Deno.serve(async (req) => {
     const tokenData = await tokenResponse.json()
     console.log('Successfully obtained access token')
 
-    // Get the file directly from the site using Microsoft Graph API
-    const siteHostname = 'carecollisionllc.sharepoint.com'
-    const sitePath = '/sites/CareCollisionLLC'
+    // Get the file using the specific Site ID
+    const siteId = '49b73754-9981-45de-9b97-b3a35ddb8215'
     const filePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
     
-    // Construct the file URL using the site and relative file path
-    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteHostname}:${sitePath}${filePath}:/content`
+    // Construct the file URL using the site ID
+    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:${filePath}:/content`
     
     console.log('Requesting file from:', fileUrl)
 
@@ -94,7 +93,6 @@ Deno.serve(async (req) => {
     const fileContent = await fileResponse.text()
     console.log('Successfully retrieved file content')
 
-    // Parse and process the XML content
     console.log('Attempting to parse XML content')
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(fileContent, 'text/xml')
@@ -187,7 +185,6 @@ Deno.serve(async (req) => {
         status: 200,
       }
     )
-
   } catch (error) {
     console.error('Detailed error:', {
       name: error.name,
