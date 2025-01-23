@@ -17,8 +17,30 @@ const BarcodeScanner = () => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
+    // First check for camera permissions
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(() => {
+        loadScanner();
+      })
+      .catch((error) => {
+        console.error("Camera permission error:", error);
+        toast.error("Please allow camera access to scan barcodes");
+        setIsInitializing(false);
+      });
+
+    return () => {
+      if (scanner) {
+        scanner
+          .stop()
+          .catch((err: any) => console.error("Error stopping scanner:", err));
+      }
+    };
+  }, []);
+
+  const loadScanner = () => {
     const script = document.createElement("script");
     script.src = "https://unpkg.com/html5-qrcode";
+    script.crossOrigin = "anonymous"; // Add CORS header
     script.async = true;
     
     script.onload = () => {
@@ -26,7 +48,8 @@ const BarcodeScanner = () => {
         initializeScanner();
       } catch (error) {
         console.error("Scanner initialization error:", error);
-        toast.error("Failed to initialize camera. Please check permissions.");
+        toast.error("Failed to initialize camera. Please try again.");
+        setIsInitializing(false);
       }
     };
 
@@ -37,28 +60,23 @@ const BarcodeScanner = () => {
     };
 
     document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-      if (scanner) {
-        scanner
-          .stop()
-          .catch((err: any) => console.error("Error stopping scanner:", err));
-      }
-    };
-  }, []);
+  };
 
   const initializeScanner = async () => {
     try {
       const html5QrCode = new window.Html5Qrcode("reader");
       setScanner(html5QrCode);
 
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1,
+        formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ]
+      };
+
       await html5QrCode.start(
         { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
+        config,
         onScanSuccess,
         onScanFailure
       );
