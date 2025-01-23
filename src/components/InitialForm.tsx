@@ -31,7 +31,7 @@ const InitialForm = () => {
       <div className="max-w-md mx-auto">
         <div className="mb-8 flex justify-center">
           <img 
-            src="/lovable-uploads/22053a54-80a5-4c23-9610-ba9efd9af495.png" 
+            src={`${import.meta.env.BASE_URL}lovable-uploads/22053a54-80a5-4c23-9610-ba9efd9af495.png`}
             alt="Care Collision Logo" 
             className="h-16 md:h-20"
           />
