@@ -10,6 +10,9 @@ interface Item {
   qty: string;
 }
 
+// Predefined webhook URL
+const WEBHOOK_URL = "https://prod-53.westus.logic.azure.com:443/workflows/b926b63c09fa4d01960d8f55a88da788/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6ZxIoQjtXzMmTyfIf0xmXysTA5HjP6GqLc8xvuWTJIM";
+
 const ItemsList = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,7 +20,6 @@ const ItemsList = () => {
   const [localItems, setLocalItems] = useState<Item[]>(items);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [newItemCode, setNewItemCode] = useState("");
-  const [webhookUrl, setWebhookUrl] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const handleQuantityChange = (index: number, value: string) => {
@@ -51,7 +53,7 @@ const ItemsList = () => {
     setNewItemCode("");
   };
 
-  const handleDone = () => {
+  const handleDone = async () => {
     // Validate all quantities
     const isValid = localItems.every((item) => {
       const qty = parseInt(item.qty);
@@ -64,14 +66,11 @@ const ItemsList = () => {
     }
 
     setIsReadOnly(true);
+    // Automatically send data after validation
+    await handleConfirm();
   };
 
   const handleConfirm = async () => {
-    if (!webhookUrl) {
-      toast.error("Please enter your Power Automate webhook URL");
-      return;
-    }
-
     setIsSending(true);
 
     try {
@@ -82,7 +81,7 @@ const ItemsList = () => {
         timestamp: new Date().toISOString(),
       };
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +94,7 @@ const ItemsList = () => {
       navigate("/success");
     } catch (error) {
       console.error("Error sending data:", error);
-      toast.error("Failed to send data to Power Automate. Please check the webhook URL and try again.");
+      toast.error("Failed to send data to Power Automate. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -165,27 +164,12 @@ const ItemsList = () => {
               "Add item"
             )}
           </Button>
-          <Button onClick={handleDone} className="w-full">
-            Done
-          </Button>
-        </div>
-      )}
-
-      {isReadOnly && (
-        <div className="mt-6 space-y-4">
-          <Input
-            type="url"
-            placeholder="Enter your Power Automate webhook URL"
-            value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
-            className="w-full"
-          />
           <Button 
-            onClick={handleConfirm} 
+            onClick={handleDone} 
             className="w-full"
             disabled={isSending}
           >
-            {isSending ? "Sending..." : "Confirm"}
+            {isSending ? "Sending..." : "Done"}
           </Button>
         </div>
       )}
