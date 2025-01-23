@@ -24,9 +24,9 @@ Deno.serve(async (req) => {
     
     console.log('Starting SharePoint authentication...')
 
-    // Get an access token using SharePoint's app-only authentication
+    // Get an access token using modern OAuth endpoint
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
-    const scope = 'https://carecollisionllc.sharepoint.com/.default'
+    const scope = 'https://graph.microsoft.com/.default'
     
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
@@ -35,11 +35,11 @@ Deno.serve(async (req) => {
       scope: scope
     })
 
-    console.log('Token URL:', tokenUrl)
-    console.log('Token request parameters:', {
-      grant_type: 'client_credentials',
-      client_id: '[REDACTED]',
-      scope: scope
+    console.log('Token request details:', {
+      url: tokenUrl,
+      tenant: tenantId,
+      scope: scope,
+      client_id: clientId.substring(0, 8) + '...' // Log partial client ID for debugging
     })
 
     const tokenResponse = await fetch(tokenUrl, {
@@ -52,9 +52,12 @@ Deno.serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
-      console.error('Token response error:', errorText)
-      console.error('Token response status:', tokenResponse.status)
-      console.error('Token response headers:', Object.fromEntries(tokenResponse.headers))
+      console.error('Token response error:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        headers: Object.fromEntries(tokenResponse.headers),
+        error: errorText
+      })
       throw new Error(`Failed to get access token: ${errorText}`)
     }
 
@@ -63,10 +66,10 @@ Deno.serve(async (req) => {
 
     console.log('Successfully obtained access token')
 
-    // Use SharePoint REST API with the correct file path
+    // Use Microsoft Graph API to access SharePoint file
     const siteUrl = 'carecollisionllc.sharepoint.com'
     const filePath = '/Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
-    const apiUrl = `https://${siteUrl}/_api/web/GetFileByServerRelativeUrl('${encodeURIComponent(filePath)}')/$value`
+    const apiUrl = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/drive/root:${encodeURIComponent(filePath)}:/content`
     
     console.log('Attempting to fetch file from:', apiUrl)
     
@@ -78,8 +81,11 @@ Deno.serve(async (req) => {
     })
 
     if (!fileResponse.ok) {
-      console.error('File response status:', fileResponse.status)
-      console.error('File response status text:', fileResponse.statusText)
+      console.error('File response error:', {
+        status: fileResponse.status,
+        statusText: fileResponse.statusText,
+        headers: Object.fromEntries(fileResponse.headers)
+      })
       const errorBody = await fileResponse.text()
       console.error('File response error body:', errorBody)
       throw new Error(`Failed to fetch XML file: ${errorBody}`)
