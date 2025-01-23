@@ -19,6 +19,11 @@ const InitialForm = () => {
       return;
     }
 
+    if (roNumber.length > 4) {
+      toast.error("RO Number must be 4 characters or less");
+      return;
+    }
+
     navigate("/scan", {
       state: {
         roNumber,
@@ -59,7 +64,13 @@ const InitialForm = () => {
               type="text"
               placeholder="RO Number"
               value={roNumber}
-              onChange={(e) => setRoNumber(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 4) {
+                  setRoNumber(value);
+                }
+              }}
+              maxLength={4}
               className="w-full"
             />
           </div>
