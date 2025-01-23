@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       url: tokenUrl,
       tenant: tenantId,
       scope: scope,
-      client_id: clientId.substring(0, 8) + '...' // Log partial client ID for debugging
+      client_id: clientId.substring(0, 8) + '...'
     })
 
     const tokenResponse = await fetch(tokenUrl, {
@@ -66,10 +66,34 @@ Deno.serve(async (req) => {
 
     console.log('Successfully obtained access token')
 
-    // Use Microsoft Graph API to access SharePoint file
-    const siteUrl = 'carecollisionllc.sharepoint.com'
-    const filePath = '/Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
-    const apiUrl = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/drive/root:${encodeURIComponent(filePath)}:/content`
+    // First, get the site ID
+    const siteDomain = 'carecollisionllc.sharepoint.com'
+    const siteResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteDomain}:/sites/General`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!siteResponse.ok) {
+      const errorBody = await siteResponse.text()
+      console.error('Site response error:', {
+        status: siteResponse.status,
+        statusText: siteResponse.statusText,
+        error: errorBody
+      })
+      throw new Error(`Failed to get site details: ${errorBody}`)
+    }
+
+    const siteData = await siteResponse.json()
+    console.log('Site details:', {
+      id: siteData.id,
+      name: siteData.displayName,
+      webUrl: siteData.webUrl
+    })
+
+    // Now get the file using the site ID
+    const filePath = '/Reports/Data/Daily Export - Sales Forecast_Report.xml'
+    const apiUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodeURIComponent(filePath)}:/content`
     
     console.log('Attempting to fetch file from:', apiUrl)
     
