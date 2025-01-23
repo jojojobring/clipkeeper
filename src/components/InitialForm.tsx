@@ -28,7 +28,7 @@ const InitialForm = () => {
       return;
     }
 
-    navigate("/scan", { state: { roNumber, name } });
+    navigate("/items", { state: { roNumber, name, items: [] } });
   };
 
   return (
