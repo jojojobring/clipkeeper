@@ -1,6 +1,12 @@
 import Quagga from 'quagga';
 
+let isInitialized = false;
+
 export const initializeScanner = (onDetected: (result: string) => void) => {
+  if (isInitialized) {
+    return;
+  }
+
   Quagga.init({
     inputStream: {
       name: "Live",
@@ -23,6 +29,7 @@ export const initializeScanner = (onDetected: (result: string) => void) => {
       return;
     }
     console.log("Quagga initialization succeeded");
+    isInitialized = true;
     Quagga.start();
   });
 
@@ -34,5 +41,14 @@ export const initializeScanner = (onDetected: (result: string) => void) => {
 };
 
 export const cleanupScanner = () => {
-  Quagga.stop();
+  if (!isInitialized) {
+    return;
+  }
+  
+  try {
+    Quagga.stop();
+    isInitialized = false;
+  } catch (error) {
+    console.error("Error stopping Quagga:", error);
+  }
 };
