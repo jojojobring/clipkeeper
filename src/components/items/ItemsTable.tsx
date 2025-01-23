@@ -33,9 +33,18 @@ const ItemsTable = ({ items, isReadOnly, onQuantityChange, onItemDetailsLoaded }
             description: data.description,
             price: data.price
           });
+        } else {
+          onItemDetailsLoaded(index, {
+            description: "Not found",
+            price: 0
+          });
         }
       } catch (error) {
         console.error('Error fetching item details:', error);
+        onItemDetailsLoaded(index, {
+          description: "Not found",
+          price: 0
+        });
       }
     };
 
