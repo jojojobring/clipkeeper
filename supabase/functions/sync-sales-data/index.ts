@@ -22,23 +22,21 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
     const tenantId = 'carecollisionllc'
 
-    console.log('Starting SharePoint authentication...');
-    console.log('Client ID:', clientId);
-    console.log('Tenant ID:', tenantId);
+    console.log('Starting SharePoint authentication...')
+    console.log('Client ID:', clientId)
+    console.log('Tenant ID:', tenantId)
 
-    // First, get an access token
-    const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/v2.0/token`
-    const scope = 'https://graph.microsoft.com/.default'
-    
+    // Get an access token with the correct resource and scope
+    const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/token`
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      scope: scope
+      resource: 'https://graph.microsoft.com',
     })
 
-    console.log('Token URL:', tokenUrl);
-    console.log('Requesting token with scope:', scope);
+    console.log('Token URL:', tokenUrl)
+    console.log('Token request parameters:', Object.fromEntries(tokenBody))
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -49,23 +47,23 @@ Deno.serve(async (req) => {
     })
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token response error:', errorText);
-      console.error('Token response status:', tokenResponse.status);
-      console.error('Token response headers:', Object.fromEntries(tokenResponse.headers));
-      throw new Error(`Failed to get access token: ${errorText}`);
+      const errorText = await tokenResponse.text()
+      console.error('Token response error:', errorText)
+      console.error('Token response status:', tokenResponse.status)
+      console.error('Token response headers:', Object.fromEntries(tokenResponse.headers))
+      throw new Error(`Failed to get access token: ${errorText}`)
     }
 
     const tokenData = await tokenResponse.json()
     const accessToken = tokenData.access_token
 
-    console.log('Successfully obtained access token');
+    console.log('Successfully obtained access token')
 
     // Use Microsoft Graph API to get the file
     const siteUrl = 'carecollisionllc.sharepoint.com'
     const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/sites/CareCollisionLLC/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
     
-    console.log('Attempting to fetch file from:', graphApiUrl);
+    console.log('Attempting to fetch file from:', graphApiUrl)
     
     const fileResponse = await fetch(graphApiUrl, {
       headers: {
@@ -75,14 +73,14 @@ Deno.serve(async (req) => {
     })
 
     if (!fileResponse.ok) {
-      console.error('File response status:', fileResponse.status);
-      console.error('File response status text:', fileResponse.statusText);
-      const errorBody = await fileResponse.text();
-      console.error('File response error body:', errorBody);
-      throw new Error(`Failed to fetch XML file: ${errorBody}`);
+      console.error('File response status:', fileResponse.status)
+      console.error('File response status text:', fileResponse.statusText)
+      const errorBody = await fileResponse.text()
+      console.error('File response error body:', errorBody)
+      throw new Error(`Failed to fetch XML file: ${errorBody}`)
     }
 
-    // Extract header information
+    // Extract and process XML content
     const xmlContent = await fileResponse.text()
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(xmlContent, 'text/xml')
