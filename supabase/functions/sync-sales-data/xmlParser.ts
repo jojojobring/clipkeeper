@@ -2,8 +2,7 @@ import { XMLParser } from 'npm:fast-xml-parser@4.3.2';
 import { HeaderData, SaleData } from './types.ts';
 
 export function parseXMLContent(fileContent: string): { headerData: HeaderData; salesData: SaleData[] } {
-  console.log('Attempting to parse XML content');
-  console.log('Raw XML content:', fileContent.substring(0, 1000) + '...'); // Log first 1000 chars
+  console.log('Starting XML parsing');
   
   if (!fileContent || fileContent.trim() === '') {
     console.error('Empty or invalid file content received');
@@ -19,10 +18,10 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
   });
 
   try {
+    console.log('Parsing XML content...');
     const result = parser.parse(fileContent);
-    console.log('Parsed XML structure:', JSON.stringify(result, null, 2));
+    console.log('XML structure:', JSON.stringify(result, null, 2));
 
-    // First check if we have a reportResponse element
     if (!result.reportResponse) {
       console.error('Could not find reportResponse element. Available keys:', Object.keys(result));
       throw new Error('Invalid XML structure: missing reportResponse element. Available root elements: ' + Object.keys(result).join(', '));
@@ -57,7 +56,7 @@ export function parseXMLContent(fileContent: string): { headerData: HeaderData; 
       salesData = salesArray.map((sale: any, index: number) => {
         console.log(`Processing sale record ${index + 1}:`, JSON.stringify(sale, null, 2));
         return {
-          report_header_id: 0,
+          report_header_id: 0, // This will be set after header insertion
           row_index: parseInt(sale.row_index || '0'),
           workfile_id: sale.workfile_id || '',
           repair_facility_name: sale.repair_facility_name || '',

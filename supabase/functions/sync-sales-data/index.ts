@@ -20,8 +20,14 @@ serve(async (req) => {
 
   try {
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing Supabase credentials');
+      throw new Error('Missing Supabase credentials');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // SharePoint authentication details
@@ -38,6 +44,7 @@ serve(async (req) => {
     }
 
     // Get SharePoint access token
+    console.log('Requesting SharePoint access token...');
     const accessToken = await getSharePointAccessToken(clientId, clientSecret, tenantId);
     console.log('Successfully obtained SharePoint access token');
 
@@ -94,19 +101,34 @@ serve(async (req) => {
     }
 
     const fileContent = await fileResponse.text();
-    console.log('Successfully retrieved file content. Content length:', fileContent.length);
-    console.log('First 100 characters of file:', fileContent.substring(0, 100));
+    console.log('Successfully retrieved file content');
+    console.log('File content length:', fileContent.length);
+    console.log('First 500 characters of file:', fileContent.substring(0, 500));
+
+    if (!fileContent || fileContent.trim() === '') {
+      throw new Error('Retrieved empty file content');
+    }
 
     // Parse XML content and extract data
+    console.log('Starting XML parsing...');
     const { headerData, salesData } = parseXMLContent(fileContent);
     console.log('Successfully parsed XML content');
+    console.log('Header data:', headerData);
     console.log('Number of sales records:', salesData.length);
 
     // Insert data into database
+    console.log('Starting database insertion...');
     await insertData(supabase, headerData, salesData);
+    console.log('Successfully inserted data into database');
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Data synchronized successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Data synchronized successfully',
+        stats: {
+          salesRecords: salesData.length
+        }
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
