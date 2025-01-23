@@ -24,17 +24,16 @@ Deno.serve(async (req) => {
     const tenantId = 'carecollisionllc'
 
     console.log('Starting SharePoint authentication...')
-    console.log('Client ID:', clientId)
-    console.log('App ID:', appId)
-    console.log('Tenant ID:', tenantId)
+    console.log('Using tenant:', tenantId)
+    console.log('Using app ID:', appId)
 
-    // Get an access token using the app-only flow
-    const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/token`
+    // Get an access token using the correct app-only flow endpoint
+    const tokenUrl = `https://accounts.accesscontrol.windows.net/${tenantId}.onmicrosoft.com/tokens/OAuth/2`
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: appId, // Use the app ID here
+      client_id: `${appId}@${tenantId}.onmicrosoft.com`,
       client_secret: clientSecret,
-      resource: 'https://carecollisionllc.sharepoint.com',
+      resource: `00000003-0000-0ff1-ce00-000000000000/${tenantId}.sharepoint.com@${tenantId}.onmicrosoft.com`
     })
 
     console.log('Token URL:', tokenUrl)
