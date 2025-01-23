@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: '/your-repo-name/', // Replace 'your-repo-name' with your actual repository name
+  base: '/invoice-inator/', // Updated to match your repository name
   plugins: [
     react(),
     mode === 'development' &&
