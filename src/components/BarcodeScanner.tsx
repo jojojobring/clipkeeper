@@ -43,10 +43,12 @@ const BarcodeScanner = () => {
   };
 
   const onScanSuccess = (decodedText: string) => {
+    console.log("Scan successful:", decodedText);
     handleCapture(decodedText);
   };
 
   const onScanFailure = (error: any) => {
+    // Only log scan failures for debugging
     console.debug("Scan failure:", error);
   };
 
@@ -63,9 +65,16 @@ const BarcodeScanner = () => {
       const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
       setScanner(html5QrCode);
 
+      const config = {
+        ...getScannerConfig(),
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
       await html5QrCode.start(
         { facingMode: "environment" },
-        getScannerConfig(),
+        config,
         onScanSuccess,
         onScanFailure
       );
