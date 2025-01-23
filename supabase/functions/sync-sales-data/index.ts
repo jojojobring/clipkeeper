@@ -6,41 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface SaleData {
-  row_index: number;
-  workfile_id: string;
-  repair_facility_name: string;
-  repair_facility_number: string;
-  franchise_id: string;
-  vehicle_out_datetime: string;
-  owner_name: string;
-  repair_order_number: string;
-  vehicle_year_make_model: string;
-  vehicle_make_name: string;
-  service_writer_display_name: string;
-  carrier_name: string;
-  master_carrier_name: string;
-  is_total_loss: boolean;
-  primary_referral_name: string;
-  primary_poi: string;
-  owner_postal_code: string;
-  repair_plan_name: string;
-  part_amount: number;
-  labor_amount: number;
-  material_amount: number;
-  other_amount: number;
-  adjustment_amount: number;
-  subtotal_amount: number;
-  tax_amount: number;
-  total_amount: number;
-  insurance_agent_name: string;
-  posted_date: string;
-  repair_completed_datetime: string;
-  customer_custom_field_name_1: string;
-  customer_custom_field_name_2: string;
-  primary_referral_note: string;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -58,20 +23,22 @@ Deno.serve(async (req) => {
     const tenantId = 'carecollisionllc'
 
     console.log('Starting SharePoint authentication...');
-    console.log('Client ID available:', !!clientId);
-    console.log('Client Secret available:', !!clientSecret);
+    console.log('Client ID:', clientId);
+    console.log('Tenant ID:', tenantId);
 
     // First, get an access token
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/v2.0/token`
+    const scope = 'https://graph.microsoft.com/.default'
+    
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      scope: 'https://graph.microsoft.com/.default'
+      scope: scope
     })
 
     console.log('Token URL:', tokenUrl);
-    console.log('Request scope:', tokenBody.get('scope'));
+    console.log('Requesting token with scope:', scope);
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -86,7 +53,7 @@ Deno.serve(async (req) => {
       console.error('Token response error:', errorText);
       console.error('Token response status:', tokenResponse.status);
       console.error('Token response headers:', Object.fromEntries(tokenResponse.headers));
-      throw new Error(`Failed to get access token: ${tokenResponse.statusText} (${tokenResponse.status})`);
+      throw new Error(`Failed to get access token: ${errorText}`);
     }
 
     const tokenData = await tokenResponse.json()
@@ -95,14 +62,15 @@ Deno.serve(async (req) => {
     console.log('Successfully obtained access token');
 
     // Use Microsoft Graph API to get the file
-    const siteId = 'carecollisionllc.sharepoint.com'
-    const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}:/sites/CareCollisionLLC:/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
+    const siteUrl = 'carecollisionllc.sharepoint.com'
+    const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/sites/CareCollisionLLC/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
     
     console.log('Attempting to fetch file from:', graphApiUrl);
     
     const fileResponse = await fetch(graphApiUrl, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/xml',
       },
     })
 
@@ -111,7 +79,7 @@ Deno.serve(async (req) => {
       console.error('File response status text:', fileResponse.statusText);
       const errorBody = await fileResponse.text();
       console.error('File response error body:', errorBody);
-      throw new Error(`Failed to fetch XML file: ${fileResponse.statusText} (${fileResponse.status})`);
+      throw new Error(`Failed to fetch XML file: ${errorBody}`);
     }
 
     // Extract header information
