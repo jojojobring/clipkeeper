@@ -64,9 +64,8 @@ Deno.serve(async (req) => {
     const tokenData = await tokenResponse.json()
     console.log('Successfully obtained access token')
 
-    // Get the site details using the correct site path
-    const sitePath = '/sites/CareCollisionLLC'
-    const siteUrl = `https://graph.microsoft.com/v1.0/sites/carecollisionllc.sharepoint.com:${sitePath}`
+    // Get the site details using Microsoft Graph API
+    const siteUrl = `https://graph.microsoft.com/v1.0/sites/carecollisionllc.sharepoint.com:/sites/CareCollisionLLC`
 
     console.log('Requesting site details from:', siteUrl)
 
@@ -87,17 +86,50 @@ Deno.serve(async (req) => {
     }
 
     const siteData = await siteResponse.json()
+    console.log('Site response data:', JSON.stringify(siteData, null, 2))
+
+    if (!siteData || !siteData.id) {
+      throw new Error('Invalid site data received: ' + JSON.stringify(siteData))
+    }
+
     console.log('Successfully found site:', {
       id: siteData.id,
       name: siteData.displayName,
       webUrl: siteData.webUrl
     })
 
+    // Get the drive ID first
+    const drivesUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drives`
+    console.log('Requesting drives from:', drivesUrl)
+
+    const drivesResponse = await fetch(drivesUrl, {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+      },
+    })
+
+    if (!drivesResponse.ok) {
+      const errorBody = await drivesResponse.text()
+      console.error('Drives response error:', {
+        status: drivesResponse.status,
+        statusText: drivesResponse.statusText,
+        error: errorBody
+      })
+      throw new Error(`Failed to get drives: ${errorBody}`)
+    }
+
+    const drivesData = await drivesResponse.json()
+    console.log('Drives data:', JSON.stringify(drivesData, null, 2))
+
+    if (!drivesData.value || !drivesData.value[0] || !drivesData.value[0].id) {
+      throw new Error('No valid drive found in response: ' + JSON.stringify(drivesData))
+    }
+
+    const driveId = drivesData.value[0].id
+
     // Get the file using the correct file path
-    // Using the full path from the SharePoint URL structure
     const filePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
-    const driveItemPath = `/drives/${siteData.drive.id}/root:${filePath}`
-    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}${driveItemPath}:/content`
+    const fileUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:${filePath}:/content`
     
     console.log('Requesting file from:', fileUrl)
 
