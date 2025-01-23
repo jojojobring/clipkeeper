@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ManualEntryForm from "./items/ManualEntryForm";
 import ItemsTable from "./items/ItemsTable";
 import ActionButtons from "./items/ActionButtons";
+import OrderHeader from "./items/OrderHeader";
+import { useSalesInfo } from "./items/useSalesInfo";
 
 interface Item {
   code: string;
@@ -20,46 +22,8 @@ const ItemsList = () => {
   const [newItemCode, setNewItemCode] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [serviceWriter, setServiceWriter] = useState<string | null>(null);
-  const [vehicleInfo, setVehicleInfo] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSalesInfo = async () => {
-      try {
-        console.log('Fetching sales info for RO:', roNumber);
-        
-        const { data, error } = await supabase
-          .from('sales')
-          .select('service_writer_display_name, vehicle_year_make_model')
-          .eq('repair_order_number', roNumber.toString())
-          .maybeSingle();
-
-        if (error) {
-          console.error('Database error:', error);
-          throw error;
-        }
-        
-        console.log('Query result:', data);
-        
-        if (data) {
-          console.log('Found sales info:', data);
-          setServiceWriter(data.service_writer_display_name);
-          setVehicleInfo(data.vehicle_year_make_model);
-        } else {
-          console.log('No matching RO number found');
-          // Removed warning toast - process continues with null values
-        }
-      } catch (error) {
-        console.error('Error fetching sales information:', error);
-        // Only show error toast for actual errors, not for missing data
-        toast.error('Failed to fetch sales information');
-      }
-    };
-
-    if (roNumber) {
-      fetchSalesInfo();
-    }
-  }, [roNumber]);
+  
+  const { serviceWriter, vehicleInfo } = useSalesInfo(roNumber);
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -136,16 +100,12 @@ const ItemsList = () => {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold">RO Number: {roNumber}</h2>
-        <p className="text-sm text-gray-600">Name: {name}</p>
-        {serviceWriter && (
-          <p className="text-sm text-gray-600">Service Advisor: {serviceWriter}</p>
-        )}
-        {vehicleInfo && (
-          <p className="text-sm text-gray-600">Vehicle: {vehicleInfo}</p>
-        )}
-      </div>
+      <OrderHeader
+        roNumber={roNumber}
+        name={name}
+        serviceWriter={serviceWriter}
+        vehicleInfo={vehicleInfo}
+      />
 
       {cameraPermissionDenied && !isReadOnly && (
         <ManualEntryForm
