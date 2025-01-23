@@ -64,25 +64,25 @@ const BarcodeScanner = () => {
     };
   }, []);
 
-  const onScanSuccess = (decodedText: string) => {
+  const onScanSuccess = async (decodedText: string) => {
     if (scanner) {
-      scanner
-        .stop()
-        .then(() => {
-          const currentItems = location.state?.items || [];
-          const newItem = { code: decodedText, qty: "" };
-          
-          navigate("/items", {
-            state: {
-              ...location.state,
-              items: [...currentItems, newItem],
-            },
-          });
-        })
-        .catch((err: any) => {
-          console.error("Error stopping scanner:", err);
-          toast.error("Error processing scan. Please try again.");
+      try {
+        await scanner.stop();
+        const currentItems = location.state?.items || [];
+        const newItem = { code: decodedText, qty: "" };
+        
+        toast.success("Barcode scanned successfully!");
+        
+        navigate("/items", {
+          state: {
+            ...location.state,
+            items: [...currentItems, newItem],
+          },
         });
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+        toast.error("Error processing scan. Please try again.");
+      }
     }
   };
 
