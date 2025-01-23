@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { requestCameraPermission } from "@/utils/cameraUtils";
@@ -18,8 +18,12 @@ const BarcodeScanner = () => {
   const [scanner, setScanner] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
+  const isProcessingRef = useRef(false);
 
   const handleCapture = async (decodedText: string) => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+    
     console.log("Handling capture for:", decodedText);
     const currentItems = location.state?.items || [];
     const newItem = { code: decodedText, qty: "" };
@@ -88,6 +92,7 @@ const BarcodeScanner = () => {
     return () => {
       mounted = false;
       cleanupScanner(scanner);
+      isProcessingRef.current = false;
     };
   }, []);
 

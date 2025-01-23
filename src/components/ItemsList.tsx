@@ -25,8 +25,17 @@ const ItemsList = () => {
   };
 
   const handleAddItem = () => {
+    cleanupAndNavigate();
+  };
+
+  const cleanupAndNavigate = () => {
     navigate("/scan", {
-      state: { roNumber, name, items: localItems },
+      state: {
+        roNumber,
+        name,
+        items: localItems,
+        cameraPermissionDenied: false
+      },
     });
   };
 
