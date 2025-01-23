@@ -80,7 +80,7 @@ const ItemsList = () => {
     try {
       // First, insert the order into the database
       const orderData = {
-        roNumber,
+        ro_number: roNumber,
         customer_name: name,
         service_writer: serviceWriter,
         vehicle_info: vehicleInfo,
