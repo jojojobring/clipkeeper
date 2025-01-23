@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const InitialForm = () => {
   const [roNumber, setRoNumber] = useState("");
   const [name, setName] = useState("");
-  const [isSyncing, setIsSyncing] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,20 +29,6 @@ const InitialForm = () => {
         items: [],
       },
     });
-  };
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      const { error } = await supabase.functions.invoke('sync-sales-data');
-      if (error) throw error;
-      toast.success('Data sync completed successfully');
-    } catch (error) {
-      console.error('Sync error:', error);
-      toast.error('Failed to sync data. Please check the logs.');
-    } finally {
-      setIsSyncing(false);
-    }
   };
 
   return (
@@ -87,17 +71,6 @@ const InitialForm = () => {
             Start Scanning
           </Button>
         </form>
-
-        <div className="mt-8">
-          <Button 
-            onClick={handleSync} 
-            disabled={isSyncing}
-            variant="outline"
-            className="w-full"
-          >
-            {isSyncing ? 'Syncing...' : 'Sync SharePoint Data'}
-          </Button>
-        </div>
       </div>
     </div>
   );
