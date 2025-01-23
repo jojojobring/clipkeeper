@@ -1,14 +1,12 @@
 import { Button } from "../ui/button";
-import { Camera, X } from "lucide-react";
+import { X } from "lucide-react";
 
 interface ScannerUIProps {
   onClose: () => void;
-  onCapture: () => void;
   isInitializing: boolean;
-  lastScannedCode: string | null;
 }
 
-const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
+const ScannerUI = ({ onClose, isInitializing }: ScannerUIProps) => {
   return (
     <div className="fixed inset-0 flex flex-col bg-black">
       <Button
@@ -28,16 +26,6 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
       
       <div className="relative flex-1">
         <div id="reader" className="absolute inset-0" />
-      </div>
-
-      <div className="h-20 bg-black flex items-center justify-center">
-        <Button
-          onClick={onCapture}
-          className="rounded-full w-16 h-16 p-0 bg-white text-black hover:bg-white/90"
-          disabled={!lastScannedCode}
-        >
-          <Camera className="h-8 w-8" />
-        </Button>
       </div>
 
       <style>

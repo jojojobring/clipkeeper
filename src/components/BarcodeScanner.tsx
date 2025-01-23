@@ -18,24 +18,13 @@ const BarcodeScanner = () => {
   const [scanner, setScanner] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
-  const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
 
-  const onScanSuccess = (decodedText: string) => {
-    setLastScannedCode(decodedText);
-    toast.success("Barcode detected! Click capture to confirm.");
-  };
-
-  const handleCapture = async () => {
-    if (!lastScannedCode) {
-      toast.error("No barcode detected. Please scan again.");
-      return;
-    }
-
+  const handleCapture = async (decodedText: string) => {
     if (scanner) {
       try {
         await scanner.stop();
         const currentItems = location.state?.items || [];
-        const newItem = { code: lastScannedCode, qty: "" };
+        const newItem = { code: decodedText, qty: "" };
         
         toast.success("Barcode captured successfully!");
         
@@ -51,6 +40,10 @@ const BarcodeScanner = () => {
         toast.error("Error processing scan. Please try again.");
       }
     }
+  };
+
+  const onScanSuccess = (decodedText: string) => {
+    handleCapture(decodedText);
   };
 
   const onScanFailure = (error: any) => {
@@ -130,9 +123,7 @@ const BarcodeScanner = () => {
   return (
     <ScannerUI
       onClose={handleClose}
-      onCapture={handleCapture}
       isInitializing={isInitializing}
-      lastScannedCode={lastScannedCode}
     />
   );
 };
