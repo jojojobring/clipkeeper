@@ -96,7 +96,7 @@ serve(async (req) => {
     console.log('Successfully retrieved file content');
 
     // Parse XML content and extract data
-    const { headerData, salesData } = parseXMLContent(fileContent);
+    const { headerData, salesData } = await parseXMLContent(fileContent);
 
     // Insert data into database
     await insertData(supabase, headerData, salesData);

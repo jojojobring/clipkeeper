@@ -1,10 +1,15 @@
-import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.49/deno-dom-wasm.ts';
+import { DOMParser, initParser } from 'https://deno.land/x/deno_dom@v0.1.49/deno-dom-wasm.ts';
 import { HeaderData, SaleData } from './types.ts';
 
-export function parseXMLContent(fileContent: string): { headerData: HeaderData; salesData: SaleData[] } {
+export async function parseXMLContent(fileContent: string): Promise<{ headerData: HeaderData; salesData: SaleData[] }> {
   console.log('Attempting to parse XML content');
+  
+  // Initialize the WASM parser
+  await initParser();
+  
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
+  // Explicitly use application/xml instead of text/xml
+  const xmlDoc = parser.parseFromString(fileContent, 'application/xml');
 
   if (!xmlDoc) {
     throw new Error('Failed to parse XML document');
