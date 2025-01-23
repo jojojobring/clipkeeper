@@ -17,60 +17,65 @@ const BarcodeScanner = () => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    // First check for camera permissions
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(() => {
-        loadScanner();
-      })
-      .catch((error) => {
+    let scriptElement: HTMLScriptElement | null = null;
+
+    const initCamera = async () => {
+      try {
+        // First check for camera permissions
+        await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: "environment"
+          } 
+        });
+        
+        // Load scanner script
+        scriptElement = document.createElement("script");
+        scriptElement.src = "https://unpkg.com/html5-qrcode@2.3.8";
+        scriptElement.crossOrigin = "anonymous";
+        scriptElement.async = true;
+        
+        scriptElement.onload = () => {
+          initializeScanner();
+        };
+
+        scriptElement.onerror = (error) => {
+          console.error("Failed to load scanner script:", error);
+          toast.error("Failed to load scanner. Please try again.");
+          setIsInitializing(false);
+        };
+
+        document.body.appendChild(scriptElement);
+      } catch (error) {
         console.error("Camera permission error:", error);
         toast.error("Please allow camera access to scan barcodes");
         setIsInitializing(false);
-      });
+      }
+    };
 
+    initCamera();
+
+    // Cleanup function
     return () => {
+      if (scriptElement && document.body.contains(scriptElement)) {
+        document.body.removeChild(scriptElement);
+      }
       if (scanner) {
-        scanner
-          .stop()
-          .catch((err: any) => console.error("Error stopping scanner:", err));
+        scanner.stop().catch((err: any) => console.error("Error stopping scanner:", err));
       }
     };
   }, []);
 
-  const loadScanner = () => {
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/html5-qrcode";
-    script.crossOrigin = "anonymous"; // Add CORS header
-    script.async = true;
-    
-    script.onload = () => {
-      try {
-        initializeScanner();
-      } catch (error) {
-        console.error("Scanner initialization error:", error);
-        toast.error("Failed to initialize camera. Please try again.");
-        setIsInitializing(false);
-      }
-    };
-
-    script.onerror = () => {
-      console.error("Failed to load scanner script");
-      toast.error("Failed to load scanner. Please try again.");
-      setIsInitializing(false);
-    };
-
-    document.body.appendChild(script);
-  };
-
   const initializeScanner = async () => {
     try {
-      const html5QrCode = new window.Html5Qrcode("reader");
+      const html5QrCode = new window.Html5Qrcode("reader", { 
+        verbose: false 
+      });
       setScanner(html5QrCode);
 
       const config = {
         fps: 10,
         qrbox: { width: 250, height: 250 },
-        aspectRatio: 1,
+        aspectRatio: 1.0,
         formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ]
       };
 
@@ -84,7 +89,7 @@ const BarcodeScanner = () => {
       setIsInitializing(false);
     } catch (error) {
       console.error("Error starting scanner:", error);
-      toast.error("Failed to start camera. Please check permissions.");
+      toast.error("Failed to start camera. Please try again.");
       setIsInitializing(false);
     }
   };
