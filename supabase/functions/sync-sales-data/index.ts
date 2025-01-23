@@ -94,9 +94,10 @@ Deno.serve(async (req) => {
     })
 
     // Get the file using the correct file path
+    // Using the full path from the SharePoint URL structure
     const filePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
-    const encodedPath = encodeURIComponent(filePath)
-    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodedPath}:/content`
+    const driveItemPath = `/drives/${siteData.drive.id}/root:${filePath}`
+    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}${driveItemPath}:/content`
     
     console.log('Requesting file from:', fileUrl)
 
