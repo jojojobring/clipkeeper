@@ -1,3 +1,29 @@
 project_id = "vhpumxssrhitkezmrywp"
-[functions.send-to-power-automate]
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+
+[realtime]
+enabled = true
+
+[functions.sync-sales-data]
 verify_jwt = false
