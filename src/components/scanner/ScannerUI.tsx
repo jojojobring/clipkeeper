@@ -10,7 +10,7 @@ interface ScannerUIProps {
 
 const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
   return (
-    <div className="min-h-[100dvh] bg-black relative flex flex-col">
+    <div className="fixed inset-0 bg-black flex flex-col">
       <Button
         variant="ghost"
         size="icon"
@@ -26,12 +26,16 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         </div>
       )}
       
-      <div id="reader" className="flex-1 min-h-0" />
+      <div id="reader" className="flex-1 relative overflow-hidden" />
 
       <style>
         {`
+          #reader {
+            height: calc(100vh - 5rem) !important;
+          }
           #reader video {
-            max-height: calc(100dvh - 5rem) !important;
+            width: 100% !important;
+            height: 100% !important;
             object-fit: cover !important;
           }
           #reader__scan_region {
@@ -43,35 +47,43 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
           #reader__scan_region > div::after {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-color: white;
             border-style: solid;
+            border-width: 3px;
           }
           #reader__scan_region::before {
-            top: 0;
-            left: 0;
-            border-width: 3px 0 0 3px;
+            top: 20px;
+            left: 20px;
+            border-right: 0;
+            border-bottom: 0;
           }
           #reader__scan_region::after {
-            top: 0;
-            right: 0;
-            border-width: 3px 3px 0 0;
+            top: 20px;
+            right: 20px;
+            border-left: 0;
+            border-bottom: 0;
           }
           #reader__scan_region > div::before {
-            bottom: 0;
-            left: 0;
-            border-width: 0 0 3px 3px;
+            bottom: 20px;
+            left: 20px;
+            border-right: 0;
+            border-top: 0;
           }
           #reader__scan_region > div::after {
-            bottom: 0;
-            right: 0;
-            border-width: 0 3px 3px 0;
+            bottom: 20px;
+            right: 20px;
+            border-left: 0;
+            border-top: 0;
+          }
+          #reader__dashboard_section_swaplink {
+            display: none !important;
           }
         `}
       </style>
 
-      <div className="sticky bottom-0 left-0 right-0 h-20 bg-black flex items-center justify-center">
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-sm flex items-center justify-center">
         <Button
           onClick={onCapture}
           className="rounded-full w-16 h-16 p-0"
