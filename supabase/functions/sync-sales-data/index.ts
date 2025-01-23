@@ -26,13 +26,13 @@ Deno.serve(async (req) => {
     console.log('Client ID:', clientId)
     console.log('Tenant ID:', tenantId)
 
-    // Get an access token with the correct resource and scope
+    // Get an access token with the correct resource
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/token`
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      resource: 'https://graph.microsoft.com',
+      resource: 'https://carecollisionllc.sharepoint.com', // Updated to target SharePoint specifically
     })
 
     console.log('Token URL:', tokenUrl)
@@ -59,13 +59,13 @@ Deno.serve(async (req) => {
 
     console.log('Successfully obtained access token')
 
-    // Use Microsoft Graph API to get the file
+    // Use SharePoint REST API instead of Graph API
     const siteUrl = 'carecollisionllc.sharepoint.com'
-    const graphApiUrl = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/sites/CareCollisionLLC/drive/root:/Shared%20Documents/sales-forecast.xml:/content`
+    const apiUrl = `https://${siteUrl}/_api/web/GetFileByServerRelativeUrl('/Shared%20Documents/sales-forecast.xml')/$value`
     
-    console.log('Attempting to fetch file from:', graphApiUrl)
+    console.log('Attempting to fetch file from:', apiUrl)
     
-    const fileResponse = await fetch(graphApiUrl, {
+    const fileResponse = await fetch(apiUrl, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept': 'application/xml',
