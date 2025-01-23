@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,35 @@ const ItemsList = () => {
   const [newItemCode, setNewItemCode] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [serviceWriter, setServiceWriter] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchServiceWriter = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sales')
+          .select('service_writer_display_name')
+          .eq('repair_order_number', roNumber)
+          .maybeSingle();
+
+        if (error) throw error;
+        
+        if (data) {
+          setServiceWriter(data.service_writer_display_name);
+        } else {
+          console.log('No matching RO number found');
+          toast.warning('No service writer found for this RO number');
+        }
+      } catch (error) {
+        console.error('Error fetching service writer:', error);
+        toast.error('Failed to fetch service writer information');
+      }
+    };
+
+    if (roNumber) {
+      fetchServiceWriter();
+    }
+  }, [roNumber]);
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -65,6 +94,7 @@ const ItemsList = () => {
       const payload = {
         roNumber,
         name,
+        serviceWriter,
         items: localItems,
         timestamp: new Date().toISOString(),
       };
@@ -97,6 +127,9 @@ const ItemsList = () => {
       <div className="mb-6">
         <h2 className="text-lg font-semibold">RO Number: {roNumber}</h2>
         <p className="text-sm text-gray-600">Name: {name}</p>
+        {serviceWriter && (
+          <p className="text-sm text-gray-600">Service Writer: {serviceWriter}</p>
+        )}
       </div>
 
       {cameraPermissionDenied && !isReadOnly && (
