@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import ManualEntryForm from "./items/ManualEntryForm";
 import ItemsTable from "./items/ItemsTable";
 import ActionButtons from "./items/ActionButtons";
@@ -9,8 +10,6 @@ interface Item {
   code: string;
   qty: string;
 }
-
-const WEBHOOK_URL = "https://prod-53.westus.logic.azure.com:443/workflows/b926b63c09fa4d01960d8f55a88da788/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6ZxIoQjtXzMmTyfIf0xmXysTA5HjP6GqLc8xvuWTJIM";
 
 const ItemsList = () => {
   const navigate = useNavigate();
@@ -70,14 +69,11 @@ const ItemsList = () => {
         timestamp: new Date().toISOString(),
       };
 
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify(payload),
+      const { data, error } = await supabase.functions.invoke('send-to-power-automate', {
+        body: payload
       });
+
+      if (error) throw error;
 
       toast.success("Invoice successfully created and sent to the Service Advisor");
       navigate("/success");
