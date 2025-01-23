@@ -10,7 +10,7 @@ interface ScannerUIProps {
 
 const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
   return (
-    <div className="fixed inset-0 bg-black flex flex-col h-[100dvh] w-full overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-black h-[100dvh] w-full">
       <Button
         variant="ghost"
         size="icon"
@@ -26,13 +26,14 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         </div>
       )}
       
-      <div id="reader" className="flex-1 relative" />
+      <div id="reader" className="w-full h-full" />
 
       <style>
         {`
           #reader {
             width: 100% !important;
             height: 100% !important;
+            position: relative !important;
           }
           #reader video {
             width: 100% !important;
@@ -115,7 +116,7 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         `}
       </style>
 
-      <div className="fixed bottom-0 left-0 right-0 h-24 bg-black/80 backdrop-blur-sm flex items-center justify-center pb-8 z-50">
+      <div className="fixed bottom-0 left-0 right-0 h-[80px] bg-black flex items-center justify-center z-50">
         <Button
           onClick={onCapture}
           className="rounded-full w-16 h-16 p-0 bg-white text-black hover:bg-white/90"
