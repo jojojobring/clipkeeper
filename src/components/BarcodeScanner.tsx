@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { requestCameraPermission } from "@/utils/cameraUtils";
+import { loadScannerScript, getScannerConfig, cleanupScanner } from "@/utils/scannerUtils";
 
 declare global {
   interface Window {
@@ -17,82 +19,50 @@ const BarcodeScanner = () => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    let scriptElement: HTMLScriptElement | null = null;
+    let mounted = true;
 
-    const initCamera = async () => {
+    const initializeCamera = async () => {
       try {
-        // First check for camera permissions
-        await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            facingMode: "environment"
-          } 
-        });
-        
-        // Load scanner script
-        scriptElement = document.createElement("script");
-        scriptElement.src = "https://unpkg.com/html5-qrcode@2.3.8";
-        scriptElement.crossOrigin = "anonymous";
-        scriptElement.async = true;
-        
-        scriptElement.onload = () => {
-          initializeScanner();
-        };
-
-        scriptElement.onerror = (error) => {
-          console.error("Failed to load scanner script:", error);
-          toast.error("Failed to load scanner. Please try again.");
+        // Check camera permissions
+        const hasPermission = await requestCameraPermission();
+        if (!hasPermission) {
+          toast.error("Please allow camera access to scan barcodes");
           setIsInitializing(false);
-        };
+          return;
+        }
 
-        document.body.appendChild(scriptElement);
-      } catch (error) {
-        console.error("Camera permission error:", error);
-        toast.error("Please allow camera access to scan barcodes");
+        // Load scanner script
+        await loadScannerScript();
+        if (!mounted) return;
+
+        // Initialize scanner
+        const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
+        setScanner(html5QrCode);
+
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          getScannerConfig(),
+          onScanSuccess,
+          onScanFailure
+        );
+
         setIsInitializing(false);
+      } catch (error) {
+        console.error("Scanner initialization error:", error);
+        if (mounted) {
+          toast.error("Failed to start camera. Please try again.");
+          setIsInitializing(false);
+        }
       }
     };
 
-    initCamera();
+    initializeCamera();
 
-    // Cleanup function
     return () => {
-      if (scriptElement && document.body.contains(scriptElement)) {
-        document.body.removeChild(scriptElement);
-      }
-      if (scanner) {
-        scanner.stop().catch((err: any) => console.error("Error stopping scanner:", err));
-      }
+      mounted = false;
+      cleanupScanner(scanner);
     };
   }, []);
-
-  const initializeScanner = async () => {
-    try {
-      const html5QrCode = new window.Html5Qrcode("reader", { 
-        verbose: false 
-      });
-      setScanner(html5QrCode);
-
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        formatsToSupport: [ "EAN_13", "EAN_8", "CODE_128" ]
-      };
-
-      await html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        onScanSuccess,
-        onScanFailure
-      );
-      
-      setIsInitializing(false);
-    } catch (error) {
-      console.error("Error starting scanner:", error);
-      toast.error("Failed to start camera. Please try again.");
-      setIsInitializing(false);
-    }
-  };
 
   const onScanSuccess = (decodedText: string) => {
     if (scanner) {
@@ -122,11 +92,7 @@ const BarcodeScanner = () => {
   };
 
   const handleClose = () => {
-    if (scanner) {
-      scanner
-        .stop()
-        .catch((err: any) => console.error("Error stopping scanner:", err));
-    }
+    cleanupScanner(scanner);
     navigate(-1);
   };
 
