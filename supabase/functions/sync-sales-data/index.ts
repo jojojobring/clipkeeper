@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: clientSecret,
-      resource: 'https://carecollisionllc.sharepoint.com', // Updated to target SharePoint specifically
+      resource: 'https://carecollisionllc.sharepoint.com',
     })
 
     console.log('Token URL:', tokenUrl)
@@ -59,9 +59,10 @@ Deno.serve(async (req) => {
 
     console.log('Successfully obtained access token')
 
-    // Use SharePoint REST API instead of Graph API
+    // Use SharePoint REST API with the correct file path
     const siteUrl = 'carecollisionllc.sharepoint.com'
-    const apiUrl = `https://${siteUrl}/_api/web/GetFileByServerRelativeUrl('/Shared%20Documents/sales-forecast.xml')/$value`
+    const filePath = '/Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
+    const apiUrl = `https://${siteUrl}/_api/web/GetFileByServerRelativeUrl('${encodeURIComponent(filePath)}')/$value`
     
     console.log('Attempting to fetch file from:', apiUrl)
     
