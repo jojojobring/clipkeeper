@@ -2,70 +2,65 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 import { toast } from "sonner";
 
 const InitialForm = () => {
-  const navigate = useNavigate();
   const [roNumber, setRoNumber] = useState("");
   const [name, setName] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!/^\d{4}$/.test(roNumber)) {
-      toast.error("RO Number must be exactly 4 digits");
-      return;
-    }
-    
-    if (name.length > 128) {
-      toast.error("Name must be 128 characters or less");
-      return;
-    }
-    
-    if (name.trim() === "") {
-      toast.error("Name is required");
+    if (!roNumber.trim() || !name.trim()) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    navigate("/scan", { state: { roNumber, name } });
+    navigate("/scan", {
+      state: {
+        roNumber,
+        name,
+        items: [],
+      },
+    });
   };
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="roNumber">RO Number</Label>
-          <Input
-            id="roNumber"
-            type="text"
-            inputMode="numeric"
-            pattern="\d{4}"
-            maxLength={4}
-            value={roNumber}
-            onChange={(e) => setRoNumber(e.target.value)}
-            placeholder="Enter 4 digit number"
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            type="text"
-            maxLength={128}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter name"
-            required
+    <div className="min-h-screen p-4">
+      <div className="max-w-md mx-auto">
+        <div className="mb-8 flex justify-center">
+          <img 
+            src="/lovable-uploads/22053a54-80a5-4c23-9610-ba9efd9af495.png" 
+            alt="Care Collision Logo" 
+            className="h-16 md:h-20"
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          Continue
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <Input
+              type="text"
+              placeholder="RO Number"
+              value={roNumber}
+              onChange={(e) => setRoNumber(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Start Scanning
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };
