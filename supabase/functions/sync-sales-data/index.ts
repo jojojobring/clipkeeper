@@ -20,17 +20,19 @@ Deno.serve(async (req) => {
     // SharePoint authentication details
     const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
+    const appId = Deno.env.get('SHAREPOINT_APP_ID')!
     const tenantId = 'carecollisionllc'
 
     console.log('Starting SharePoint authentication...')
     console.log('Client ID:', clientId)
+    console.log('App ID:', appId)
     console.log('Tenant ID:', tenantId)
 
-    // Get an access token with the correct resource
+    // Get an access token using the app-only flow
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}.onmicrosoft.com/oauth2/token`
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: clientId,
+      client_id: appId, // Use the app ID here
       client_secret: clientSecret,
       resource: 'https://carecollisionllc.sharepoint.com',
     })
