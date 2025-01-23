@@ -21,15 +21,16 @@ const ItemsList = () => {
   const [isSending, setIsSending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serviceWriter, setServiceWriter] = useState<string | null>(null);
+  const [vehicleInfo, setVehicleInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchServiceWriter = async () => {
+    const fetchSalesInfo = async () => {
       try {
-        console.log('Fetching service writer for RO:', roNumber);
+        console.log('Fetching sales info for RO:', roNumber);
         
         const { data, error } = await supabase
           .from('sales')
-          .select('service_writer_display_name')
+          .select('service_writer_display_name, vehicle_year_make_model')
           .eq('repair_order_number', roNumber.toString())
           .maybeSingle();
 
@@ -41,20 +42,21 @@ const ItemsList = () => {
         console.log('Query result:', data);
         
         if (data) {
-          console.log('Found service writer:', data.service_writer_display_name);
+          console.log('Found sales info:', data);
           setServiceWriter(data.service_writer_display_name);
+          setVehicleInfo(data.vehicle_year_make_model);
         } else {
           console.log('No matching RO number found');
-          toast.warning('No service writer found for this RO number');
+          toast.warning('No sales information found for this RO number');
         }
       } catch (error) {
-        console.error('Error fetching service writer:', error);
-        toast.error('Failed to fetch service writer information');
+        console.error('Error fetching sales information:', error);
+        toast.error('Failed to fetch sales information');
       }
     };
 
     if (roNumber) {
-      fetchServiceWriter();
+      fetchSalesInfo();
     }
   }, [roNumber]);
 
@@ -103,6 +105,7 @@ const ItemsList = () => {
         roNumber,
         name,
         serviceWriter,
+        vehicleInfo,
         items: localItems,
         timestamp: new Date().toISOString(),
       };
@@ -137,6 +140,9 @@ const ItemsList = () => {
         <p className="text-sm text-gray-600">Name: {name}</p>
         {serviceWriter && (
           <p className="text-sm text-gray-600">Service Advisor: {serviceWriter}</p>
+        )}
+        {vehicleInfo && (
+          <p className="text-sm text-gray-600">Vehicle: {vehicleInfo}</p>
         )}
       </div>
 
