@@ -38,6 +38,7 @@ export type Database = {
           created_at: string
           customer_name: string
           id: number
+          invoice: string | null
           items: Json
           ro_number: string
           service_writer: string | null
@@ -48,6 +49,7 @@ export type Database = {
           created_at?: string
           customer_name: string
           id?: never
+          invoice?: string | null
           items: Json
           ro_number: string
           service_writer?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           id?: never
+          invoice?: string | null
           items?: Json
           ro_number?: string
           service_writer?: string | null
@@ -238,7 +241,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invoice_number: {
+        Args: {
+          ro: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

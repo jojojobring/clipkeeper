@@ -78,11 +78,12 @@ const ItemsList = () => {
     setIsSending(true);
 
     try {
-      const payload = {
+      // First, insert the order into the database
+      const orderData = {
         roNumber,
-        name,
-        serviceWriter,
-        vehicleInfo,
+        customer_name: name,
+        service_writer: serviceWriter,
+        vehicle_info: vehicleInfo,
         items: localItems.map(item => ({
           code: item.code,
           qty: item.qty,
@@ -92,17 +93,31 @@ const ItemsList = () => {
         timestamp: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase.functions.invoke('send-to-power-automate', {
-        body: payload
+      const { data: orderResult, error: orderError } = await supabase
+        .from('order_requests')
+        .insert(orderData)
+        .select('invoice')
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Then send to Power Automate with the invoice number
+      const powerAutomatePayload = {
+        ...orderData,
+        invoice: orderResult.invoice
+      };
+
+      const { error: functionError } = await supabase.functions.invoke('send-to-power-automate', {
+        body: powerAutomatePayload
       });
 
-      if (error) throw error;
+      if (functionError) throw functionError;
 
       toast.success("Invoice successfully created and sent to the Service Advisor");
       navigate("/success");
     } catch (error) {
-      console.error("Error sending data:", error);
-      toast.error("Failed to send data to Power Automate. Please try again.");
+      console.error("Error processing order:", error);
+      toast.error("Failed to process the order. Please try again.");
       setIsReadOnly(false);
       setShowConfirm(false);
     } finally {
