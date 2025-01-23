@@ -10,7 +10,7 @@ interface ScannerUIProps {
 
 const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
   return (
-    <div className="fixed inset-0 bg-black flex flex-col h-[100dvh]">
+    <div className="fixed inset-0 bg-black flex flex-col h-[100dvh] w-full">
       <Button
         variant="ghost"
         size="icon"
@@ -26,13 +26,13 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         </div>
       )}
       
-      <div id="reader" className="flex-1 relative" />
+      <div id="reader" className="absolute inset-0 top-0 bottom-20" />
 
       <style>
         {`
           #reader {
-            height: calc(100dvh - 5rem) !important;
             width: 100% !important;
+            height: 100% !important;
           }
           #reader video {
             width: 100% !important;
@@ -44,6 +44,8 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
           }
           #reader__scan_region {
             background: transparent !important;
+            position: absolute !important;
+            inset: 0 !important;
           }
           #reader__scan_region::before,
           #reader__scan_region::after,
@@ -86,6 +88,12 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
             display: none !important;
           }
           #reader__dashboard_section_csr {
+            display: none !important;
+          }
+          #reader__dashboard_section_csr button {
+            display: none !important;
+          }
+          #reader__camera_selection {
             display: none !important;
           }
         `}
