@@ -25,15 +25,23 @@ const ItemsList = () => {
   useEffect(() => {
     const fetchServiceWriter = async () => {
       try {
+        console.log('Fetching service writer for RO:', roNumber);
+        
         const { data, error } = await supabase
           .from('sales')
           .select('service_writer_display_name')
-          .eq('repair_order_number', roNumber)
+          .eq('repair_order_number', roNumber.toString())
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          throw error;
+        }
+        
+        console.log('Query result:', data);
         
         if (data) {
+          console.log('Found service writer:', data.service_writer_display_name);
           setServiceWriter(data.service_writer_display_name);
         } else {
           console.log('No matching RO number found');
