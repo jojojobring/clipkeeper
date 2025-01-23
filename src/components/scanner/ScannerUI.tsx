@@ -10,7 +10,7 @@ interface ScannerUIProps {
 
 const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
   return (
-    <div className="min-h-screen bg-black relative flex flex-col">
+    <div className="min-h-[100dvh] bg-black relative flex flex-col">
       <Button
         variant="ghost"
         size="icon"
@@ -26,9 +26,52 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         </div>
       )}
       
-      <div id="reader" className="w-full h-[calc(100vh-80px)]" />
+      <div id="reader" className="flex-1 min-h-0" />
 
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-black flex items-center justify-center">
+      <style>
+        {`
+          #reader video {
+            max-height: calc(100dvh - 5rem) !important;
+            object-fit: cover !important;
+          }
+          #reader__scan_region {
+            background: transparent !important;
+          }
+          #reader__scan_region::before,
+          #reader__scan_region::after,
+          #reader__scan_region > div::before,
+          #reader__scan_region > div::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: white;
+            border-style: solid;
+          }
+          #reader__scan_region::before {
+            top: 0;
+            left: 0;
+            border-width: 3px 0 0 3px;
+          }
+          #reader__scan_region::after {
+            top: 0;
+            right: 0;
+            border-width: 3px 3px 0 0;
+          }
+          #reader__scan_region > div::before {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 3px 3px;
+          }
+          #reader__scan_region > div::after {
+            bottom: 0;
+            right: 0;
+            border-width: 0 3px 3px 0;
+          }
+        `}
+      </style>
+
+      <div className="sticky bottom-0 left-0 right-0 h-20 bg-black flex items-center justify-center">
         <Button
           onClick={onCapture}
           className="rounded-full w-16 h-16 p-0"
