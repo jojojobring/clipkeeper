@@ -40,11 +40,38 @@ serve(async (req) => {
     // Get SharePoint access token
     const accessToken = await getSharePointAccessToken(clientId, clientSecret, tenantId);
 
-    // Get the file using the specific Site ID
+    // Get the file using the specific Site ID and Drive ID
     const siteId = '49b73754-9981-45de-9b97-b3a35ddb8215';
-    const rawFilePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml';
+    
+    // First, get the default document library drive ID
+    console.log('Fetching drive ID for the site');
+    const driveResponse = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!driveResponse.ok) {
+      const driveError = await driveResponse.text();
+      console.error('Drive response error:', {
+        status: driveResponse.status,
+        statusText: driveResponse.statusText,
+        error: driveError
+      });
+      throw new Error(`Failed to get drive ID: ${driveError}`);
+    }
+
+    const driveData = await driveResponse.json();
+    const driveId = driveData.id;
+    console.log('Retrieved drive ID:', driveId);
+
+    // Now get the file using the drive ID
+    const rawFilePath = '/General/Reports/Data/Daily Export - Sales Forecast_Report.xml';
     const encodedFilePath = encodeURIComponent(rawFilePath);
-    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:${encodedFilePath}:/content`;
+    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drives/${driveId}/root:${encodedFilePath}:/content`;
     
     console.log('Requesting file from:', fileUrl);
 
