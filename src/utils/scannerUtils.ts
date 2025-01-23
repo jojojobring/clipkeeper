@@ -13,7 +13,14 @@ export const initializeScanner = (onDetected: (result: string) => void) => {
       type: "LiveStream",
       target: "#interactive",
       constraints: {
-        facingMode: "environment"
+        // Explicitly set width and height for iOS
+        width: { min: 640 },
+        height: { min: 480 },
+        facingMode: {
+          exact: "environment"  // Force rear camera on mobile devices
+        },
+        // Add aspectRatio constraint for better iOS compatibility
+        aspectRatio: { min: 1, max: 2 }
       },
     },
     decoder: {
@@ -21,8 +28,15 @@ export const initializeScanner = (onDetected: (result: string) => void) => {
         "ean_reader",
         "ean_8_reader",
         "code_128_reader"
-      ]
-    }
+      ],
+      debug: {
+        drawBoundingBox: true,
+        showFrequency: true,
+        drawScanline: true,
+        showPattern: true
+      }
+    },
+    locate: true  // Enable locating of barcode in image
   }, (err) => {
     if (err) {
       console.error("Quagga initialization failed:", err);

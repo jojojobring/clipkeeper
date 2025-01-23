@@ -58,6 +58,11 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
             left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none;
+          }
+          #interactive.viewport > canvas.drawingBuffer {
+            width: 100%;
+            height: 100%;
           }
         `}
       </style>
