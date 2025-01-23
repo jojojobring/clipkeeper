@@ -136,7 +136,7 @@ const ItemsList = () => {
         <h2 className="text-lg font-semibold">RO Number: {roNumber}</h2>
         <p className="text-sm text-gray-600">Name: {name}</p>
         {serviceWriter && (
-          <p className="text-sm text-gray-600">Service Writer: {serviceWriter}</p>
+          <p className="text-sm text-gray-600">Service Advisor: {serviceWriter}</p>
         )}
       </div>
 
