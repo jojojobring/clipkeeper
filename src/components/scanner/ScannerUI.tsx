@@ -10,7 +10,7 @@ interface ScannerUIProps {
 
 const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: ScannerUIProps) => {
   return (
-    <div className="fixed inset-0 bg-black flex flex-col h-[100dvh] w-full">
+    <div className="fixed inset-0 bg-black flex flex-col h-[100dvh] w-full overflow-hidden">
       <Button
         variant="ghost"
         size="icon"
@@ -53,34 +53,34 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
           #reader__scan_region > div::after {
             content: '';
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-color: white;
             border-style: solid;
-            border-width: 3px;
+            border-width: 2px;
             z-index: 20;
           }
           #reader__scan_region::before {
-            top: 20px;
-            left: 20px;
+            top: calc(50% - 100px);
+            left: calc(50% - 100px);
             border-right: 0;
             border-bottom: 0;
           }
           #reader__scan_region::after {
-            top: 20px;
-            right: 20px;
+            top: calc(50% - 100px);
+            right: calc(50% - 100px);
             border-left: 0;
             border-bottom: 0;
           }
           #reader__scan_region > div::before {
-            bottom: 20px;
-            left: 20px;
+            bottom: calc(50% - 100px);
+            left: calc(50% - 100px);
             border-right: 0;
             border-top: 0;
           }
           #reader__scan_region > div::after {
-            bottom: 20px;
-            right: 20px;
+            bottom: calc(50% - 100px);
+            right: calc(50% - 100px);
             border-left: 0;
             border-top: 0;
           }
@@ -99,10 +99,10 @@ const ScannerUI = ({ onClose, onCapture, isInitializing, lastScannedCode }: Scan
         `}
       </style>
 
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-sm flex items-center justify-center pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-sm flex items-center justify-center pb-safe z-50">
         <Button
           onClick={onCapture}
-          className="rounded-full w-16 h-16 p-0"
+          className="rounded-full w-16 h-16 p-0 bg-white text-black hover:bg-white/90"
           disabled={!lastScannedCode}
         >
           <Camera className="h-8 w-8" />
