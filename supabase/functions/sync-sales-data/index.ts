@@ -20,28 +20,27 @@ Deno.serve(async (req) => {
     // SharePoint authentication details
     const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
-    const appId = Deno.env.get('SHAREPOINT_APP_ID')!
     const tenantId = 'carecollisionllc.onmicrosoft.com'
-    const realm = tenantId
-    const principal = `${clientId}@${realm}`
-
+    
     console.log('Starting SharePoint authentication...')
-    console.log('Using realm:', realm)
-    console.log('Using principal:', principal)
 
     // Get an access token using SharePoint's app-only authentication
-    const tokenUrl = `https://accounts.accesscontrol.windows.net/${realm}/tokens/OAuth/2`
-    const resource = `00000003-0000-0ff1-ce00-000000000000/${tenantId}`
+    const tokenUrl = 'https://accounts.accesscontrol.windows.net/carecollisionllc.onmicrosoft.com/tokens/OAuth/2'
+    const resource = 'https://carecollisionllc.sharepoint.com'
     
     const tokenBody = new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: principal,
+      client_id: clientId,
       client_secret: clientSecret,
       resource: resource
     })
 
     console.log('Token URL:', tokenUrl)
-    console.log('Token request parameters:', Object.fromEntries(tokenBody))
+    console.log('Token request parameters:', {
+      grant_type: 'client_credentials',
+      client_id: '[REDACTED]',
+      resource: resource
+    })
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -86,7 +85,6 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to fetch XML file: ${errorBody}`)
     }
 
-    // Extract and process XML content
     const xmlContent = await fileResponse.text()
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(xmlContent, 'text/xml')
