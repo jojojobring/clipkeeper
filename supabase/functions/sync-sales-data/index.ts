@@ -53,9 +53,13 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // SharePoint authentication details
-    const clientId = Deno.env.get('Sharepoint Secret ID')!
-    const clientSecret = Deno.env.get('Sharepoint Secret Value')!
-    const tenantId = 'carecollisionllc.sharepoint.com' // Extracted from your SharePoint URL
+    const clientId = Deno.env.get('SHAREPOINT_CLIENT_ID')!
+    const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
+    const tenantId = 'carecollisionllc.sharepoint.com'
+
+    console.log('Starting SharePoint authentication...');
+    console.log('Client ID available:', !!clientId);
+    console.log('Client Secret available:', !!clientSecret);
 
     // First, get an access token
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
@@ -72,8 +76,16 @@ Deno.serve(async (req) => {
       }),
     })
 
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error('Token response error:', errorData);
+      throw new Error(`Failed to get access token: ${tokenResponse.statusText}`);
+    }
+
     const tokenData = await tokenResponse.json()
     const accessToken = tokenData.access_token
+
+    console.log('Successfully obtained access token');
 
     // Use Microsoft Graph API to get the file
     const graphApiUrl = 'https://graph.microsoft.com/v1.0/sites/carecollisionllc.sharepoint.com:/sites/CareCollisionLLC:/drive/root:/Shared%20Documents/sales-forecast.xml:/content'
@@ -84,6 +96,8 @@ Deno.serve(async (req) => {
     })
 
     if (!fileResponse.ok) {
+      console.error('File response status:', fileResponse.status);
+      console.error('File response status text:', fileResponse.statusText);
       throw new Error(`Failed to fetch XML file: ${fileResponse.statusText}`)
     }
 
