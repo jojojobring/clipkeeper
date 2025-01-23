@@ -6,31 +6,44 @@ export async function insertData(
   headerData: HeaderData,
   salesData: SaleData[]
 ): Promise<void> {
-  // Insert header record
-  const { data: headerRecord, error: headerError } = await supabase
-    .from('report_headers')
-    .insert([headerData])
-    .select()
-    .single();
+  try {
+    console.log('Starting database insertion - header data');
+    const { data: headerRecord, error: headerError } = await supabase
+      .from('report_headers')
+      .insert([headerData])
+      .select()
+      .single();
 
-  if (headerError) {
-    console.error('Error inserting header:', headerError);
-    throw headerError;
-  }
+    if (headerError) {
+      console.error('Error inserting header:', headerError);
+      throw headerError;
+    }
 
-  // Update sales data with header ID
-  const salesWithHeader = salesData.map(sale => ({
-    ...sale,
-    report_header_id: headerRecord.id
-  }));
+    console.log('Successfully inserted header record:', headerRecord);
 
-  // Insert sales records
-  const { error: salesError } = await supabase
-    .from('sales')
-    .insert(salesWithHeader);
+    // Update sales data with header ID
+    const salesWithHeader = salesData.map(sale => ({
+      ...sale,
+      report_header_id: headerRecord.id
+    }));
 
-  if (salesError) {
-    console.error('Error inserting sales:', salesError);
-    throw salesError;
+    console.log('Starting database insertion - sales data');
+    const { error: salesError } = await supabase
+      .from('sales')
+      .insert(salesWithHeader);
+
+    if (salesError) {
+      console.error('Error inserting sales:', salesError);
+      throw salesError;
+    }
+
+    console.log('Successfully inserted all sales records');
+  } catch (error) {
+    console.error('Database operation error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    throw error;
   }
 }

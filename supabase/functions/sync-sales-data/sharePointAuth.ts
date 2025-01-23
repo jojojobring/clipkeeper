@@ -9,28 +9,37 @@ export async function getSharePointAccessToken(clientId: string, clientSecret: s
     scope: scope
   });
 
-  console.log('Requesting access token from:', tokenUrl);
+  console.log('Requesting SharePoint access token from:', tokenUrl);
 
-  const tokenResponse = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: tokenBody,
-  });
-
-  if (!tokenResponse.ok) {
-    const errorText = await tokenResponse.text();
-    console.error('Token response error:', {
-      status: tokenResponse.status,
-      statusText: tokenResponse.statusText,
-      error: errorText
+  try {
+    const tokenResponse = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: tokenBody,
     });
-    throw new Error(`Failed to get access token: ${errorText}`);
-  }
 
-  const tokenData = await tokenResponse.json();
-  console.log('Successfully obtained access token');
-  
-  return tokenData.access_token;
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('Token response error:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to get SharePoint access token: ${errorText}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    console.log('Successfully obtained SharePoint access token');
+    
+    return tokenData.access_token;
+  } catch (error) {
+    console.error('SharePoint authentication error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
 }

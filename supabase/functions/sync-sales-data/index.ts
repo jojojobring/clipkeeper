@@ -19,40 +19,36 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting sync-sales-data function execution');
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing Supabase credentials');
-      throw new Error('Missing Supabase credentials');
+      throw new Error('Missing required Supabase environment variables');
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('Supabase client initialized successfully');
 
     // SharePoint authentication details
     const clientId = Deno.env.get('SHAREPOINT_APP_ID');
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET');
     const tenantId = 'carecollisionllc.onmicrosoft.com';
     
-    console.log('Starting SharePoint authentication');
-    console.log('Client ID available:', !!clientId);
-    console.log('Client Secret available:', !!clientSecret);
-
     if (!clientId || !clientSecret) {
-      throw new Error('Missing SharePoint credentials');
+      throw new Error('Missing required SharePoint environment variables');
     }
 
-    // Get SharePoint access token
-    console.log('Requesting SharePoint access token...');
+    console.log('Starting SharePoint authentication process');
     const accessToken = await getSharePointAccessToken(clientId, clientSecret, tenantId);
     console.log('Successfully obtained SharePoint access token');
 
-    // Get the file using the specific Site ID and Drive ID
+    // Get the file using the specific Site ID
     const siteId = '49b73754-9981-45de-9b97-b3a35ddb8215';
     
-    // First, get the default document library drive ID
-    console.log('Fetching drive ID for the site');
+    console.log('Fetching drive ID for site:', siteId);
     const driveResponse = await fetch(
       `https://graph.microsoft.com/v1.0/sites/${siteId}/drive`,
       {
@@ -74,15 +70,13 @@ serve(async (req) => {
 
     const driveData = await driveResponse.json();
     const driveId = driveData.id;
-    console.log('Retrieved drive ID:', driveId);
+    console.log('Successfully retrieved drive ID:', driveId);
 
-    // Now get the file using the drive ID
     const rawFilePath = '/General/Reports/Data/Daily Export - Sales Forecast_Report.xml';
     const encodedFilePath = encodeURIComponent(rawFilePath);
     const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drives/${driveId}/root:${encodedFilePath}:/content`;
     
-    console.log('Requesting file from:', fileUrl);
-
+    console.log('Requesting file from SharePoint:', fileUrl);
     const fileResponse = await fetch(fileUrl, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -97,29 +91,28 @@ serve(async (req) => {
         statusText: fileResponse.statusText,
         error: errorBody
       });
-      throw new Error(`Failed to get file: ${errorBody}`);
+      throw new Error(`Failed to get file from SharePoint: ${errorBody}`);
     }
 
     const fileContent = await fileResponse.text();
-    console.log('Successfully retrieved file content');
-    console.log('File content length:', fileContent.length);
-    console.log('First 500 characters of file:', fileContent.substring(0, 500));
-
+    
     if (!fileContent || fileContent.trim() === '') {
-      throw new Error('Retrieved empty file content');
+      throw new Error('Retrieved empty file content from SharePoint');
     }
 
-    // Parse XML content and extract data
-    console.log('Starting XML parsing...');
+    console.log('Successfully retrieved file content');
+    console.log('File content length:', fileContent.length);
+    console.log('First 500 characters:', fileContent.substring(0, 500));
+
+    console.log('Starting XML parsing process');
     const { headerData, salesData } = parseXMLContent(fileContent);
     console.log('Successfully parsed XML content');
     console.log('Header data:', headerData);
     console.log('Number of sales records:', salesData.length);
 
-    // Insert data into database
-    console.log('Starting database insertion...');
+    console.log('Starting database insertion');
     await insertData(supabase, headerData, salesData);
-    console.log('Successfully inserted data into database');
+    console.log('Successfully completed database insertion');
 
     return new Response(
       JSON.stringify({ 
