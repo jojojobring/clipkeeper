@@ -1,4 +1,4 @@
-import { DOMParser } from 'https://deno.land/x/deno_dom/deno-dom-wasm.ts';
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38-alpha/deno-dom-wasm.ts';
 import { HeaderData, SaleData } from './types.ts';
 
 export function parseXMLContent(fileContent: string): { headerData: HeaderData; salesData: SaleData[] } {
