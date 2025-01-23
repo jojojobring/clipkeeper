@@ -22,7 +22,10 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
     const tenantId = 'carecollisionllc.onmicrosoft.com'
     
-    console.log('Starting SharePoint authentication...')
+    console.log('Starting SharePoint authentication with details:', {
+      clientId: clientId.substring(0, 8) + '...',
+      tenantId,
+    })
 
     // Get an access token using modern OAuth endpoint
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
@@ -35,12 +38,7 @@ Deno.serve(async (req) => {
       scope: scope
     })
 
-    console.log('Token request details:', {
-      url: tokenUrl,
-      tenant: tenantId,
-      scope: scope,
-      client_id: clientId.substring(0, 8) + '...'
-    })
+    console.log('Making token request to:', tokenUrl)
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -55,74 +53,109 @@ Deno.serve(async (req) => {
       console.error('Token response error:', {
         status: tokenResponse.status,
         statusText: tokenResponse.statusText,
-        headers: Object.fromEntries(tokenResponse.headers),
         error: errorText
       })
       throw new Error(`Failed to get access token: ${errorText}`)
     }
 
     const tokenData = await tokenResponse.json()
-    const accessToken = tokenData.access_token
-
     console.log('Successfully obtained access token')
 
-    // Get the site using hostname and relative path
+    // Get the site details
     const siteDomain = 'carecollisionllc.sharepoint.com'
-    const relativePath = '/sites/General'
-    const siteResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteDomain}:${relativePath}`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
+    console.log('Attempting to get site details for domain:', siteDomain)
 
-    if (!siteResponse.ok) {
-      const errorBody = await siteResponse.text()
-      console.error('Site response error:', {
-        status: siteResponse.status,
-        statusText: siteResponse.statusText,
-        error: errorBody
+    // Try different site paths
+    const sitePaths = [
+      '/sites/General',
+      '/General',
+      '/',
+      ''
+    ]
+
+    let siteData = null
+    let siteResponse = null
+
+    for (const path of sitePaths) {
+      console.log(`Trying site path: ${path}`)
+      const url = path ? 
+        `https://graph.microsoft.com/v1.0/sites/${siteDomain}:${path}` :
+        `https://graph.microsoft.com/v1.0/sites/${siteDomain}`
+
+      console.log('Making request to:', url)
+
+      siteResponse = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+        },
       })
-      throw new Error(`Failed to get site details: ${errorBody}`)
+
+      if (siteResponse.ok) {
+        siteData = await siteResponse.json()
+        console.log('Successfully found site with path:', path)
+        console.log('Site details:', {
+          id: siteData.id,
+          name: siteData.displayName,
+          webUrl: siteData.webUrl
+        })
+        break
+      } else {
+        const errorBody = await siteResponse.text()
+        console.log(`Failed to get site with path ${path}:`, errorBody)
+      }
     }
 
-    const siteData = await siteResponse.json()
-    console.log('Site details:', {
-      id: siteData.id,
-      name: siteData.displayName,
-      webUrl: siteData.webUrl
-    })
-
-    // Now get the file using the site ID
-    const filePath = '/Reports/Data/Daily Export - Sales Forecast_Report.xml'
-    const apiUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodeURIComponent(filePath)}:/content`
-    
-    console.log('Attempting to fetch file from:', apiUrl)
-    
-    const fileResponse = await fetch(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/xml',
-      },
-    })
-
-    if (!fileResponse.ok) {
-      console.error('File response error:', {
-        status: fileResponse.status,
-        statusText: fileResponse.statusText,
-        headers: Object.fromEntries(fileResponse.headers)
-      })
-      const errorBody = await fileResponse.text()
-      console.error('File response error body:', errorBody)
-      throw new Error(`Failed to fetch XML file: ${errorBody}`)
+    if (!siteData) {
+      throw new Error('Could not find SharePoint site with any of the attempted paths')
     }
 
-    const xmlContent = await fileResponse.text()
+    // Now try to get the file
+    const filePaths = [
+      '/Reports/Data/Daily Export - Sales Forecast_Report.xml',
+      '/Data/Daily Export - Sales Forecast_Report.xml',
+      '/Daily Export - Sales Forecast_Report.xml'
+    ]
+
+    let fileContent = null
+    let fileResponse = null
+
+    for (const path of filePaths) {
+      console.log(`Trying file path: ${path}`)
+      const url = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodeURIComponent(path)}:/content`
+      
+      console.log('Making request to:', url)
+      
+      fileResponse = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Accept': 'application/xml',
+        },
+      })
+
+      if (fileResponse.ok) {
+        fileContent = await fileResponse.text()
+        console.log('Successfully found file with path:', path)
+        break
+      } else {
+        const errorBody = await fileResponse.text()
+        console.log(`Failed to get file with path ${path}:`, errorBody)
+      }
+    }
+
+    if (!fileContent) {
+      throw new Error('Could not find XML file with any of the attempted paths')
+    }
+
+    // Parse and process the XML content
+    console.log('Attempting to parse XML content')
     const parser = new DOMParser()
-    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml')
+    const xmlDoc = parser.parseFromString(fileContent, 'text/xml')
 
     if (!xmlDoc) {
       throw new Error('Failed to parse XML document')
     }
+
+    console.log('Successfully parsed XML document')
 
     // Extract header information
     const header = xmlDoc.querySelector('header')
