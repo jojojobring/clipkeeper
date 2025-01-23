@@ -1,73 +1,73 @@
-import { DOMParser, initParser } from 'https://deno.land/x/deno_dom@v0.1.49/deno-dom-wasm.ts';
+import { XMLParser } from 'npm:fast-xml-parser@4.3.2';
 import { HeaderData, SaleData } from './types.ts';
 
-export async function parseXMLContent(fileContent: string): Promise<{ headerData: HeaderData; salesData: SaleData[] }> {
+export function parseXMLContent(fileContent: string): { headerData: HeaderData; salesData: SaleData[] } {
   console.log('Attempting to parse XML content');
   
-  // Initialize the WASM parser
-  await initParser();
-  
-  const parser = new DOMParser();
-  // Explicitly use application/xml instead of text/xml
-  const xmlDoc = parser.parseFromString(fileContent, 'application/xml');
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    parseAttributeValue: true,
+    trimValues: true
+  });
 
-  if (!xmlDoc) {
-    throw new Error('Failed to parse XML document');
+  const result = parser.parse(fileContent);
+  console.log('XML parsing successful');
+
+  if (!result || !result.report) {
+    throw new Error('Invalid XML structure: missing report element');
   }
 
-  console.log('Successfully parsed XML document');
-
   // Extract header information
-  const header = xmlDoc.querySelector('header');
+  const header = result.report.header || {};
   const headerData: HeaderData = {
-    company_name: header?.querySelector('companyName')?.textContent || '',
-    report_name: header?.querySelector('reportName')?.textContent || '',
-    created_datetime: header?.querySelector('createdDateTime')?.textContent || '',
-    locations: header?.querySelector('geographyReportViewParameter valueName')?.textContent || '',
-    date_range_type: header?.querySelector('dateRangeWithTomorrowType')?.textContent || '',
-    start_date: header?.querySelector('startDate')?.textContent || '',
-    end_date: header?.querySelector('endDate')?.textContent || '',
-    total_loss_flag: header?.querySelector('totalLossReportViewParameter flag')?.textContent === 'true',
-    carrier_name: header?.querySelector('carrierReportViewParameter carrierName')?.textContent || '',
-    vehicle_done_type: header?.querySelector('vehicleDoneTypeReportViewParameter vehicleDoneType')?.textContent || '',
+    company_name: header.companyName || '',
+    report_name: header.reportName || '',
+    created_datetime: header.createdDateTime || '',
+    locations: header.geographyReportViewParameter?.valueName || '',
+    date_range_type: header.dateRangeWithTomorrowType || '',
+    start_date: header.startDate || '',
+    end_date: header.endDate || '',
+    total_loss_flag: header.totalLossReportViewParameter?.flag === 'true',
+    carrier_name: header.carrierReportViewParameter?.carrierName || '',
+    vehicle_done_type: header.vehicleDoneTypeReportViewParameter?.vehicleDoneType || '',
   };
 
   // Process sales data
-  const sales = xmlDoc.querySelectorAll('sale');
-  const salesData: SaleData[] = Array.from(sales).map(sale => ({
-    report_header_id: 0, // This will be set after header insertion
-    row_index: parseInt(sale.querySelector('row_index')?.textContent || '0'),
-    workfile_id: sale.querySelector('workfile_id')?.textContent || '',
-    repair_facility_name: sale.querySelector('repair_facility_name')?.textContent || '',
-    repair_facility_number: sale.querySelector('repair_facility_number')?.textContent || '',
-    franchise_id: sale.querySelector('franchise_id')?.textContent || '',
-    vehicle_out_datetime: sale.querySelector('vehicle_out_datetime')?.textContent || '',
-    owner_name: sale.querySelector('owner_name')?.textContent || '',
-    repair_order_number: sale.querySelector('repair_order_number')?.textContent || '',
-    vehicle_year_make_model: sale.querySelector('vehicle_year_make_model')?.textContent || '',
-    vehicle_make_name: sale.querySelector('vehicle_make_name')?.textContent || '',
-    service_writer_display_name: sale.querySelector('service_writer_display_name')?.textContent || '',
-    carrier_name: sale.querySelector('carrier_name')?.textContent || '',
-    master_carrier_name: sale.querySelector('master_carrier_name')?.textContent || '',
-    is_total_loss: sale.querySelector('is_total_loss')?.textContent === 'true',
-    primary_referral_name: sale.querySelector('primary_referral_name')?.textContent || '',
-    primary_poi: sale.querySelector('primary_poi')?.textContent || '',
-    owner_postal_code: sale.querySelector('owner_postal_code')?.textContent || '',
-    repair_plan_name: sale.querySelector('repair_plan_name')?.textContent || '',
-    part_amount: parseFloat(sale.querySelector('part_amount')?.textContent || '0'),
-    labor_amount: parseFloat(sale.querySelector('labor_amount')?.textContent || '0'),
-    material_amount: parseFloat(sale.querySelector('material_amount')?.textContent || '0'),
-    other_amount: parseFloat(sale.querySelector('other_amount')?.textContent || '0'),
-    adjustment_amount: parseFloat(sale.querySelector('adjustment_amount')?.textContent || '0'),
-    subtotal_amount: parseFloat(sale.querySelector('subtotal_amount')?.textContent || '0'),
-    tax_amount: parseFloat(sale.querySelector('tax_amount')?.textContent || '0'),
-    total_amount: parseFloat(sale.querySelector('total_amount')?.textContent || '0'),
-    insurance_agent_name: sale.querySelector('insurance_agent_name')?.textContent || '',
-    posted_date: sale.querySelector('posted_date')?.textContent || '',
-    repair_completed_datetime: sale.querySelector('repair_completed_datetime')?.textContent || '',
-    customer_custom_field_name_1: sale.querySelector('customer_custom_field_name_1')?.textContent || '',
-    customer_custom_field_name_2: sale.querySelector('customer_custom_field_name_2')?.textContent || '',
-    primary_referral_note: sale.querySelector('primary_referral_note')?.textContent || '',
+  const salesArray = Array.isArray(result.report.sale) ? result.report.sale : [result.report.sale];
+  const salesData: SaleData[] = salesArray.map((sale: any) => ({
+    report_header_id: 0,
+    row_index: parseInt(sale.row_index || '0'),
+    workfile_id: sale.workfile_id || '',
+    repair_facility_name: sale.repair_facility_name || '',
+    repair_facility_number: sale.repair_facility_number || '',
+    franchise_id: sale.franchise_id || '',
+    vehicle_out_datetime: sale.vehicle_out_datetime || '',
+    owner_name: sale.owner_name || '',
+    repair_order_number: sale.repair_order_number || '',
+    vehicle_year_make_model: sale.vehicle_year_make_model || '',
+    vehicle_make_name: sale.vehicle_make_name || '',
+    service_writer_display_name: sale.service_writer_display_name || '',
+    carrier_name: sale.carrier_name || '',
+    master_carrier_name: sale.master_carrier_name || '',
+    is_total_loss: sale.is_total_loss === 'true',
+    primary_referral_name: sale.primary_referral_name || '',
+    primary_poi: sale.primary_poi || '',
+    owner_postal_code: sale.owner_postal_code || '',
+    repair_plan_name: sale.repair_plan_name || '',
+    part_amount: parseFloat(sale.part_amount || '0'),
+    labor_amount: parseFloat(sale.labor_amount || '0'),
+    material_amount: parseFloat(sale.material_amount || '0'),
+    other_amount: parseFloat(sale.other_amount || '0'),
+    adjustment_amount: parseFloat(sale.adjustment_amount || '0'),
+    subtotal_amount: parseFloat(sale.subtotal_amount || '0'),
+    tax_amount: parseFloat(sale.tax_amount || '0'),
+    total_amount: parseFloat(sale.total_amount || '0'),
+    insurance_agent_name: sale.insurance_agent_name || '',
+    posted_date: sale.posted_date || '',
+    repair_completed_datetime: sale.repair_completed_datetime || '',
+    customer_custom_field_name_1: sale.customer_custom_field_name_1 || '',
+    customer_custom_field_name_2: sale.customer_custom_field_name_2 || '',
+    primary_referral_note: sale.primary_referral_note || '',
   }));
 
   return { headerData, salesData };
