@@ -19,52 +19,6 @@ const BarcodeScanner = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeCamera = async () => {
-      try {
-        // Check camera permissions
-        const hasPermission = await requestCameraPermission();
-        if (!hasPermission) {
-          setCameraPermissionDenied(true);
-          setIsInitializing(false);
-          return;
-        }
-
-        // Load scanner script
-        await loadScannerScript();
-        if (!mounted) return;
-
-        // Initialize scanner
-        const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
-        setScanner(html5QrCode);
-
-        await html5QrCode.start(
-          { facingMode: "environment" },
-          getScannerConfig(),
-          onScanSuccess,
-          onScanFailure
-        );
-
-        setIsInitializing(false);
-      } catch (error) {
-        console.error("Scanner initialization error:", error);
-        if (mounted) {
-          setCameraPermissionDenied(true);
-          setIsInitializing(false);
-        }
-      }
-    };
-
-    initializeCamera();
-
-    return () => {
-      mounted = false;
-      cleanupScanner(scanner);
-    };
-  }, []);
-
   const onScanSuccess = async (decodedText: string) => {
     if (scanner) {
       try {
@@ -92,6 +46,55 @@ const BarcodeScanner = () => {
     // Silent failure is fine for scanning attempts
     console.debug("Scan failure:", error);
   };
+
+  const initializeCamera = async () => {
+    try {
+      // Check camera permissions
+      const hasPermission = await requestCameraPermission();
+      if (!hasPermission) {
+        setCameraPermissionDenied(true);
+        setIsInitializing(false);
+        return;
+      }
+
+      // Load scanner script
+      await loadScannerScript();
+
+      // Initialize scanner
+      const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
+      setScanner(html5QrCode);
+
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        getScannerConfig(),
+        onScanSuccess,
+        onScanFailure
+      );
+
+      setIsInitializing(false);
+    } catch (error) {
+      console.error("Scanner initialization error:", error);
+      setCameraPermissionDenied(true);
+      setIsInitializing(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const setup = async () => {
+      if (mounted) {
+        await initializeCamera();
+      }
+    };
+
+    setup();
+
+    return () => {
+      mounted = false;
+      cleanupScanner(scanner);
+    };
+  }, []);
 
   const handleClose = () => {
     cleanupScanner(scanner);
