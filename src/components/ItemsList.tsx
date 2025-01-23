@@ -90,7 +90,7 @@ const ItemsList = () => {
         body: JSON.stringify(payload),
       });
 
-      toast.success("Invoice successfully created and sent to Power Automate");
+      toast.success("Invoice successfully created and sent to the Service Advisor");
       navigate("/success");
     } catch (error) {
       console.error("Error sending data:", error);
