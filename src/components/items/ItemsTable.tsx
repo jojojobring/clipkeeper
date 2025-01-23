@@ -62,7 +62,7 @@ const ItemsTable = ({ items, isReadOnly, onQuantityChange, onItemDetailsLoaded }
           <tr className="border-b">
             <th className="text-left py-2">Item</th>
             <th className="text-left py-2">Description</th>
-            <th className="text-left py-2">Price</th>
+            <th className="text-left py-2 pr-8">Price</th>
             <th className="text-left py-2">Qty</th>
           </tr>
         </thead>
@@ -71,7 +71,7 @@ const ItemsTable = ({ items, isReadOnly, onQuantityChange, onItemDetailsLoaded }
             <tr key={index} className="border-b">
               <td className="py-2">{item.code}</td>
               <td className="py-2">{item.description || 'Loading...'}</td>
-              <td className="py-2">${item.price?.toFixed(2) || '...'}</td>
+              <td className="py-2 pr-8">${item.price?.toFixed(2) || '...'}</td>
               <td className="py-2">
                 {isReadOnly ? (
                   <span>{item.qty}</span>
