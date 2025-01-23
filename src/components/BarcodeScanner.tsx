@@ -18,15 +18,27 @@ const BarcodeScanner = () => {
   const [scanner, setScanner] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
 
-  const onScanSuccess = async (decodedText: string) => {
+  const onScanSuccess = (decodedText: string) => {
+    // Store the scanned code but don't navigate yet
+    setLastScannedCode(decodedText);
+    toast.success("Barcode detected! Click capture to confirm.");
+  };
+
+  const handleCapture = async () => {
+    if (!lastScannedCode) {
+      toast.error("No barcode detected. Please scan again.");
+      return;
+    }
+
     if (scanner) {
       try {
         await scanner.stop();
         const currentItems = location.state?.items || [];
-        const newItem = { code: decodedText, qty: "" };
+        const newItem = { code: lastScannedCode, qty: "" };
         
-        toast.success("Barcode scanned successfully!");
+        toast.success("Barcode captured successfully!");
         
         navigate("/items", {
           state: {
@@ -152,6 +164,14 @@ const BarcodeScanner = () => {
       )}
       
       <div id="reader" className="w-full h-screen" />
+
+      <Button
+        onClick={handleCapture}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full w-16 h-16 p-0"
+        disabled={!lastScannedCode}
+      >
+        <Camera className="h-8 w-8" />
+      </Button>
     </div>
   );
 };
