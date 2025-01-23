@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Camera } from "lucide-react";
 import { toast } from "sonner";
 
 interface Item {
@@ -13,7 +12,7 @@ interface Item {
 const ItemsList = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { roNumber, name, items = [], cameraPermissionDenied = false } = location.state || {};
+  const { roNumber, name, items = [] } = location.state || {};
   const [localItems, setLocalItems] = useState<Item[]>(items);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [newItemCode, setNewItemCode] = useState("");
@@ -22,12 +21,6 @@ const ItemsList = () => {
     const newItems = [...localItems];
     newItems[index].qty = value;
     setLocalItems(newItems);
-  };
-
-  const handleAddItem = () => {
-    navigate("/scan", {
-      state: { roNumber, name, items: localItems },
-    });
   };
 
   const handleManualAdd = () => {
@@ -41,7 +34,6 @@ const ItemsList = () => {
   };
 
   const handleDone = () => {
-    // Validate all quantities
     const isValid = localItems.every((item) => {
       const qty = parseInt(item.qty);
       return !isNaN(qty) && qty > 0;
@@ -67,19 +59,17 @@ const ItemsList = () => {
         <p className="text-sm text-gray-600">Name: {name}</p>
       </div>
 
-      {cameraPermissionDenied && !isReadOnly && (
-        <div className="mb-6 space-y-2">
-          <Input
-            type="text"
-            placeholder="Enter item code manually"
-            value={newItemCode}
-            onChange={(e) => setNewItemCode(e.target.value)}
-          />
-          <Button onClick={handleManualAdd} className="w-full">
-            Add Manual Entry
-          </Button>
-        </div>
-      )}
+      <div className="mb-6 space-y-2">
+        <Input
+          type="text"
+          placeholder="Enter item code manually"
+          value={newItemCode}
+          onChange={(e) => setNewItemCode(e.target.value)}
+        />
+        <Button onClick={handleManualAdd} className="w-full">
+          Add Item
+        </Button>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -113,21 +103,9 @@ const ItemsList = () => {
       </div>
 
       {!isReadOnly && (
-        <div className="mt-6 space-y-4">
-          <Button onClick={handleAddItem} className="w-full">
-            {cameraPermissionDenied ? (
-              <>
-                <Camera className="mr-2 h-4 w-4" />
-                Try Camera Scan
-              </>
-            ) : (
-              "Add item"
-            )}
-          </Button>
-          <Button onClick={handleDone} className="w-full">
-            Done
-          </Button>
-        </div>
+        <Button onClick={handleDone} className="w-full mt-6">
+          Done
+        </Button>
       )}
 
       {isReadOnly && (
