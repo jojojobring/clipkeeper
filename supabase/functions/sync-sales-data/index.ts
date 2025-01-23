@@ -22,10 +22,7 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('SHAREPOINT_CLIENT_SECRET')!
     const tenantId = 'carecollisionllc.onmicrosoft.com'
     
-    console.log('Starting SharePoint authentication with details:', {
-      clientId: clientId.substring(0, 8) + '...',
-      tenantId,
-    })
+    console.log('Starting SharePoint authentication')
 
     // Get an access token using modern OAuth endpoint
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
@@ -37,8 +34,6 @@ Deno.serve(async (req) => {
       client_secret: clientSecret,
       scope: scope
     })
-
-    console.log('Making token request to:', tokenUrl)
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -61,90 +56,62 @@ Deno.serve(async (req) => {
     const tokenData = await tokenResponse.json()
     console.log('Successfully obtained access token')
 
-    // Get the site details
+    // Get the site details using the correct site path
     const siteDomain = 'carecollisionllc.sharepoint.com'
-    console.log('Attempting to get site details for domain:', siteDomain)
+    const sitePath = '/sites/CareCollisionLLC'
+    const siteUrl = `https://graph.microsoft.com/v1.0/sites/${siteDomain}:${sitePath}`
 
-    // Try different site paths
-    const sitePaths = [
-      '/sites/General',
-      '/General',
-      '/',
-      ''
-    ]
+    console.log('Attempting to get site details:', siteUrl)
 
-    let siteData = null
-    let siteResponse = null
+    const siteResponse = await fetch(siteUrl, {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+      },
+    })
 
-    for (const path of sitePaths) {
-      console.log(`Trying site path: ${path}`)
-      const url = path ? 
-        `https://graph.microsoft.com/v1.0/sites/${siteDomain}:${path}` :
-        `https://graph.microsoft.com/v1.0/sites/${siteDomain}`
-
-      console.log('Making request to:', url)
-
-      siteResponse = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-        },
+    if (!siteResponse.ok) {
+      const errorBody = await siteResponse.text()
+      console.error('Site response error:', {
+        status: siteResponse.status,
+        statusText: siteResponse.statusText,
+        error: errorBody
       })
-
-      if (siteResponse.ok) {
-        siteData = await siteResponse.json()
-        console.log('Successfully found site with path:', path)
-        console.log('Site details:', {
-          id: siteData.id,
-          name: siteData.displayName,
-          webUrl: siteData.webUrl
-        })
-        break
-      } else {
-        const errorBody = await siteResponse.text()
-        console.log(`Failed to get site with path ${path}:`, errorBody)
-      }
+      throw new Error(`Failed to get site details: ${errorBody}`)
     }
 
-    if (!siteData) {
-      throw new Error('Could not find SharePoint site with any of the attempted paths')
-    }
+    const siteData = await siteResponse.json()
+    console.log('Successfully found site:', {
+      id: siteData.id,
+      name: siteData.displayName,
+      webUrl: siteData.webUrl
+    })
 
-    // Now try to get the file
-    const filePaths = [
-      '/Reports/Data/Daily Export - Sales Forecast_Report.xml',
-      '/Data/Daily Export - Sales Forecast_Report.xml',
-      '/Daily Export - Sales Forecast_Report.xml'
-    ]
+    // Get the file using the correct file path
+    const filePath = '/Shared Documents/General/Reports/Data/Daily Export - Sales Forecast_Report.xml'
+    const encodedPath = encodeURIComponent(filePath)
+    const fileUrl = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodedPath}:/content`
+    
+    console.log('Attempting to get file:', fileUrl)
 
-    let fileContent = null
-    let fileResponse = null
+    const fileResponse = await fetch(fileUrl, {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'Accept': 'application/xml',
+      },
+    })
 
-    for (const path of filePaths) {
-      console.log(`Trying file path: ${path}`)
-      const url = `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drive/root:${encodeURIComponent(path)}:/content`
-      
-      console.log('Making request to:', url)
-      
-      fileResponse = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Accept': 'application/xml',
-        },
+    if (!fileResponse.ok) {
+      const errorBody = await fileResponse.text()
+      console.error('File response error:', {
+        status: fileResponse.status,
+        statusText: fileResponse.statusText,
+        error: errorBody
       })
-
-      if (fileResponse.ok) {
-        fileContent = await fileResponse.text()
-        console.log('Successfully found file with path:', path)
-        break
-      } else {
-        const errorBody = await fileResponse.text()
-        console.log(`Failed to get file with path ${path}:`, errorBody)
-      }
+      throw new Error(`Failed to get file: ${errorBody}`)
     }
 
-    if (!fileContent) {
-      throw new Error('Could not find XML file with any of the attempted paths')
-    }
+    const fileContent = await fileResponse.text()
+    console.log('Successfully retrieved file content')
 
     // Parse and process the XML content
     console.log('Attempting to parse XML content')
