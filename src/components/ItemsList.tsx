@@ -47,10 +47,11 @@ const ItemsList = () => {
           setVehicleInfo(data.vehicle_year_make_model);
         } else {
           console.log('No matching RO number found');
-          toast.warning('No sales information found for this RO number');
+          // Removed warning toast - process continues with null values
         }
       } catch (error) {
         console.error('Error fetching sales information:', error);
+        // Only show error toast for actual errors, not for missing data
         toast.error('Failed to fetch sales information');
       }
     };
