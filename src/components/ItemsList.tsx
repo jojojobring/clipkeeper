@@ -27,6 +27,13 @@ const ItemsList = () => {
   
   const { serviceWriter, vehicleInfo, repairFacilityName } = useSalesInfo(roNumber);
 
+  const handleDeleteItem = (index: number) => {
+    const newItems = [...localItems];
+    newItems.splice(index, 1);
+    setLocalItems(newItems);
+    toast.success("Item removed");
+  };
+
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
     newItems[index].qty = value;
@@ -153,6 +160,7 @@ const ItemsList = () => {
         isReadOnly={isReadOnly}
         onQuantityChange={handleQuantityChange}
         onItemDetailsLoaded={handleItemDetailsLoaded}
+        onDeleteItem={handleDeleteItem}
       />
 
       <ActionButtons
