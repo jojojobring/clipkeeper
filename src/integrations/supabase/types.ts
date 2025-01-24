@@ -40,6 +40,7 @@ export type Database = {
           id: number
           invoice: string | null
           items: Json
+          repair_facility_name: string | null
           ro_number: string
           service_writer: string | null
           timestamp: string
@@ -51,6 +52,7 @@ export type Database = {
           id?: never
           invoice?: string | null
           items: Json
+          repair_facility_name?: string | null
           ro_number: string
           service_writer?: string | null
           timestamp?: string
@@ -62,6 +64,7 @@ export type Database = {
           id?: never
           invoice?: string | null
           items?: Json
+          repair_facility_name?: string | null
           ro_number?: string
           service_writer?: string | null
           timestamp?: string

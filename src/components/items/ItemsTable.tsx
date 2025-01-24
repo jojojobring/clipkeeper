@@ -20,20 +20,33 @@ const ItemsTable = ({ items, isReadOnly, onQuantityChange, onItemDetailsLoaded }
   useEffect(() => {
     const fetchItemDetails = async (code: string, index: number) => {
       try {
+        console.log('Fetching details for item code:', code);
+        
+        // Trim the code to remove any potential whitespace
+        const trimmedCode = code.trim();
+        console.log('Trimmed code:', trimmedCode);
+        
         const { data, error } = await supabase
           .from('items')
           .select('description, price')
-          .eq('item_code', code)
+          .eq('item_code', trimmedCode)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          throw error;
+        }
+        
+        console.log('Query result:', data);
         
         if (data) {
+          console.log('Found item:', data);
           onItemDetailsLoaded(index, {
             description: data.description,
             price: data.price
           });
         } else {
+          console.log('No item found for code:', trimmedCode);
           onItemDetailsLoaded(index, {
             description: "Not found",
             price: 0
