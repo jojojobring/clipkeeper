@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const useSalesInfo = (roNumber: string) => {
   const [serviceWriter, setServiceWriter] = useState<string | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState<string | null>(null);
+  const [repairFacilityName, setRepairFacilityName] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSalesInfo = async () => {
@@ -13,7 +14,7 @@ export const useSalesInfo = (roNumber: string) => {
         
         const { data, error } = await supabase
           .from('sales')
-          .select('service_writer_display_name, vehicle_year_make_model')
+          .select('service_writer_display_name, vehicle_year_make_model, repair_facility_name')
           .eq('repair_order_number', roNumber.toString())
           .maybeSingle();
 
@@ -28,6 +29,7 @@ export const useSalesInfo = (roNumber: string) => {
           console.log('Found sales info:', data);
           setServiceWriter(data.service_writer_display_name);
           setVehicleInfo(data.vehicle_year_make_model);
+          setRepairFacilityName(data.repair_facility_name);
         } else {
           console.log('No matching RO number found');
         }
@@ -42,5 +44,5 @@ export const useSalesInfo = (roNumber: string) => {
     }
   }, [roNumber]);
 
-  return { serviceWriter, vehicleInfo };
+  return { serviceWriter, vehicleInfo, repairFacilityName };
 };

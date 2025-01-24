@@ -25,7 +25,7 @@ const ItemsList = () => {
   const [isSending, setIsSending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   
-  const { serviceWriter, vehicleInfo } = useSalesInfo(roNumber);
+  const { serviceWriter, vehicleInfo, repairFacilityName } = useSalesInfo(roNumber);
 
   const handleQuantityChange = (index: number, value: string) => {
     const newItems = [...localItems];
@@ -84,6 +84,7 @@ const ItemsList = () => {
         customer_name: name,
         service_writer: serviceWriter,
         vehicle_info: vehicleInfo,
+        repair_facility_name: repairFacilityName,
         items: localItems.map(item => ({
           code: item.code,
           qty: item.qty,
