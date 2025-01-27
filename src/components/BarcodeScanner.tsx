@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { Html5Qrcode } from "html5-qrcode";
 import { requestCameraPermission } from "@/utils/cameraUtils";
-import { loadScannerScript, getScannerConfig, cleanupScanner } from "@/utils/scannerUtils";
+import { getScannerConfig, cleanupScanner } from "@/utils/scannerUtils";
 import CameraPermissionUI from "./scanner/CameraPermissionUI";
 import ScannerUI from "./scanner/ScannerUI";
 
@@ -57,8 +58,7 @@ const BarcodeScanner = () => {
         return;
       }
 
-      await loadScannerScript();
-      const html5QrCode = new window.Html5Qrcode("reader", { verbose: false });
+      const html5QrCode = new Html5Qrcode("reader", { verbose: false });
       setScanner(html5QrCode);
 
       const config = getScannerConfig();

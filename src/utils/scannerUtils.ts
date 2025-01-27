@@ -1,18 +1,4 @@
-const SCANNER_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8";
-
-export const loadScannerScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = SCANNER_SCRIPT_URL;
-    script.crossOrigin = "anonymous";
-    script.async = true;
-    
-    script.onload = () => resolve();
-    script.onerror = (error) => reject(error);
-    
-    document.body.appendChild(script);
-  });
-};
+import { Html5Qrcode } from "html5-qrcode";
 
 export const getScannerConfig = () => ({
   fps: 10,
