@@ -32,6 +32,7 @@ export const useSalesInfo = (roNumber: string) => {
           setRepairFacilityName(data.repair_facility_name);
         } else {
           console.log('No matching RO number found');
+          toast.error('No sales information found for this RO number');
         }
       } catch (error) {
         console.error('Error fetching sales information:', error);
