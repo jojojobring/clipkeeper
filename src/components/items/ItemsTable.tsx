@@ -35,10 +35,13 @@ const ItemsTable = ({
         const trimmedCode = code.trim();
         console.log('Trimmed code:', trimmedCode);
         
+        // Modified query to get the item with the highest price when duplicates exist
         const { data, error } = await supabase
           .from('items')
           .select('description, price')
           .eq('item_code', trimmedCode)
+          .order('price', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (error) {
