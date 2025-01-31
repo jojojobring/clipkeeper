@@ -85,18 +85,18 @@ const ItemsTable = ({
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b">
-            <th className="text-left py-2">Item</th>
-            <th className="text-left py-2">Description</th>
-            <th className="text-left py-2">Qty</th>
+            <th className="text-left py-2 px-4">Item</th>
+            <th className="text-left py-2 px-4">Description</th>
+            <th className="text-left py-2 px-4">Qty</th>
             {!isReadOnly && <th className="w-10"></th>}
           </tr>
         </thead>
         <tbody>
           {items.map((item, index) => (
             <tr key={index} className="border-b">
-              <td className="py-2">{item.code}</td>
-              <td className="py-2">{item.description || 'Loading...'}</td>
-              <td className="py-2">
+              <td className="py-2 px-4">{item.code}</td>
+              <td className="py-2 px-4 text-left">{item.description || 'Loading...'}</td>
+              <td className="py-2 px-4">
                 {isReadOnly ? (
                   <span>{item.qty}</span>
                 ) : (
