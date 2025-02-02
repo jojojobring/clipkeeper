@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { X } from "lucide-react";
 import ManualEntryForm from "./items/ManualEntryForm";
 import ItemsTable from "./items/ItemsTable";
 import ActionButtons from "./items/ActionButtons";
@@ -138,8 +139,12 @@ const ItemsList = () => {
     setShowConfirm(false);
   };
 
+  const handleCancel = () => {
+    navigate("/");
+  };
+
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 relative pb-20">
       <OrderHeader
         roNumber={roNumber}
         name={name}
@@ -173,6 +178,14 @@ const ItemsList = () => {
         onConfirm={handleConfirm}
         onEdit={handleEdit}
       />
+
+      <button
+        onClick={handleCancel}
+        className="fixed bottom-4 left-4 right-4 flex items-center justify-center text-red-500 hover:text-red-700 transition-colors"
+      >
+        <X className="w-4 h-4 mr-2" />
+        Cancel
+      </button>
     </div>
   );
 };

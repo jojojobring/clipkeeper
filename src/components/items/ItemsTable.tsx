@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import { Input } from "../ui/input";
-import { Trash2 } from "lucide-react";
-import { Button } from "../ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import TableHeader from "./TableHeader";
+import TableRow from "./TableRow";
 
 interface Item {
   code: string;
@@ -31,7 +30,6 @@ const ItemsTable = ({
       try {
         console.log('Fetching details for item code:', code);
         
-        // Trim the code to remove any potential whitespace
         const trimmedCode = code.trim();
         console.log('Trimmed code:', trimmedCode);
         
@@ -39,6 +37,8 @@ const ItemsTable = ({
           .from('items')
           .select('description, price')
           .eq('item_code', trimmedCode)
+          .order('price', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (error) {
@@ -80,45 +80,17 @@ const ItemsTable = ({
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-2">Item</th>
-            <th className="text-left py-2">Description</th>
-            <th className="text-left py-2">Qty</th>
-            {!isReadOnly && <th className="w-10"></th>}
-          </tr>
-        </thead>
+        <TableHeader isReadOnly={isReadOnly} />
         <tbody>
           {items.map((item, index) => (
-            <tr key={index} className="border-b">
-              <td className="py-2">{item.code}</td>
-              <td className="py-2">{item.description || 'Loading...'}</td>
-              <td className="py-2">
-                {isReadOnly ? (
-                  <span>{item.qty}</span>
-                ) : (
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.qty}
-                    onChange={(e) => onQuantityChange(index, e.target.value)}
-                    className="w-20"
-                  />
-                )}
-              </td>
-              {!isReadOnly && (
-                <td className="py-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteItem?.(index)}
-                    className="h-8 w-8"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </td>
-              )}
-            </tr>
+            <TableRow
+              key={index}
+              item={item}
+              index={index}
+              isReadOnly={isReadOnly}
+              onQuantityChange={onQuantityChange}
+              onDeleteItem={onDeleteItem}
+            />
           ))}
         </tbody>
       </table>
