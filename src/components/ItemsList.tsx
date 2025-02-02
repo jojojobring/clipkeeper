@@ -144,7 +144,7 @@ const ItemsList = () => {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 relative pb-20">
       <OrderHeader
         roNumber={roNumber}
         name={name}
@@ -181,7 +181,7 @@ const ItemsList = () => {
 
       <button
         onClick={handleCancel}
-        className="mt-4 w-full flex items-center justify-center text-red-500 hover:text-red-700 transition-colors"
+        className="fixed bottom-4 left-4 right-4 flex items-center justify-center text-red-500 hover:text-red-700 transition-colors"
       >
         <X className="w-4 h-4 mr-2" />
         Cancel
