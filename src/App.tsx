@@ -1,30 +1,17 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
-import InitialForm from "./components/InitialForm";
-import BarcodeScanner from "./components/BarcodeScanner";
-import ItemsList from "./components/ItemsList";
-import Success from "./components/Success";
 
-const queryClient = new QueryClient();
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
+import Index from "@/pages/Index";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+const App = () => {
+  return (
+    <Router>
       <Toaster />
-      <Sonner />
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<InitialForm />} />
-          <Route path="/scan" element={<BarcodeScanner />} />
-          <Route path="/items" element={<ItemsList />} />
-          <Route path="/success" element={<Success />} />
-        </Routes>
-      </HashRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      <Routes>
+        <Route path="/" element={<Index />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;
