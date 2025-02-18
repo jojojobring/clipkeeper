@@ -250,6 +250,12 @@ export type Database = {
         }
         Returns: string
       }
+      upsert_sales_data: {
+        Args: {
+          p_sales_data: Json[]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
