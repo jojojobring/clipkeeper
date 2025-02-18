@@ -7,6 +7,7 @@ export async function insertData(
   headerData: HeaderData,
   salesData: SaleData[]
 ): Promise<void> {
+  // First insert the header record
   const { data: headerRecord, error: headerError } = await supabase
     .from('report_headers')
     .insert([headerData])
@@ -17,16 +18,20 @@ export async function insertData(
     throw headerError;
   }
 
+  // Prepare sales data with header ID
   const salesWithHeader = salesData.map(sale => ({
     ...sale,
     report_header_id: headerRecord.id
   }));
 
+  // Use the upsert_sales_data function to handle duplicates
   const { error: salesError } = await supabase
-    .from('sales')
-    .insert(salesWithHeader);
+    .rpc('upsert_sales_data', {
+      p_sales_data: salesWithHeader
+    });
 
   if (salesError) {
+    console.error('Error upserting sales data:', salesError);
     throw salesError;
   }
 }
